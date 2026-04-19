@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Grüns — Retention Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E0F0B;
+    --bg-elev: #15170F;
+    --bg-card: #1A1D14;
+    --border: #2A2E22;
+    --border-strong: #3A3F30;
+    --ink: #E8E6DC;
+    --ink-dim: #9A9B8C;
+    --ink-faint: #5F6354;
+    --accent: #B8D666;
+    --accent-dim: #7A9142;
+    --accent-deep: #3D4D20;
+    --warn: #D4A24C;
+    --danger: #C95A4B;
+    --info: #7BA3B8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num, .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+  a { color: inherit; text-decoration: none; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    background: var(--bg-elev); position: sticky; top: 0; z-index: 50;
+  }
+  .brand { display: flex; align-items: baseline; gap: 14px; }
+  .brand-mark {
+    font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .brand-mark .u { color: var(--accent); font-style: italic; }
+  .brand-divider { color: var(--ink-faint); font-size: 11px; }
+  .brand-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-dim);
+  }
+  .topbar-right {
+    display: flex; align-items: center; gap: 20px; font-size: 11px;
+    color: var(--ink-dim); font-family: 'JetBrains Mono', monospace;
+  }
+  .back-link {
+    color: var(--accent); padding: 3px 8px; border: 1px solid var(--accent-dim);
+    border-radius: 3px; font-size: 10px;
+  }
+
+  .shell {
+    display: grid; grid-template-columns: 200px 1fr;
+    min-height: calc(100vh - 52px);
+  }
+  .sidebar {
+    border-right: 1px solid var(--border); padding: 24px 0;
+    background: var(--bg-elev);
+  }
+  .nav-group { margin-bottom: 28px; }
+  .nav-label {
+    padding: 0 20px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 20px; cursor: pointer;
+    color: var(--ink-dim); font-size: 12.5px;
+    border-left: 2px solid transparent; transition: all 0.15s;
+  }
+  .nav-item:hover { color: var(--ink); background: rgba(184,214,102,0.03); }
+  .nav-item.active {
+    color: var(--accent); border-left-color: var(--accent);
+    background: linear-gradient(90deg, rgba(184,214,102,0.08), transparent);
+  }
+  .nav-item .dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+  .nav-item .badge { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 2px; background: var(--border); color: var(--ink-dim); letter-spacing: 0.05em; }
+
+  .main { padding: 28px 32px 60px; max-width: 1600px; }
+  .headline {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .headline h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px; font-weight: 400; letter-spacing: -0.02em;
+  }
+  .headline h1 em { color: var(--accent); font-style: italic; }
+  .headline .sub {
+    font-size: 12px; color: var(--ink-dim); margin-top:6px; max-width: 680px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 20px 0 24px; }
+
+  /* KPI strip */
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); margin-bottom: 28px;
+  }
+  .kpi { background: var(--bg-card); padding: 18px 20px; position: relative; }
+  .kpi-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 10px;
+  }
+  .kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px; font-weight: 500;
+    color: var(--ink); line-height: 1; margin-bottom: 8px;
+  }
+  .kpi-value.warn { color: var(--warn); }
+  .kpi-value .unit { font-size: 13px; color: var(--ink-dim); margin-left: 2px; }
+  .kpi-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .delta-up { color: var(--accent); }
+  .delta-down { color: var(--danger); }
+  .delta-neutral { color: var(--ink-dim); }
+
+  .panel {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 2px; overflow: hidden;
+    display: flex; flex-direction: column;
+    margin-bottom: 20px;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 12px; border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .panel-title .accent { color: var(--accent); }
+  .panel-meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-dim); letter-spacing: 0.08em;
+  }
+  .panel-body { padding: 18px; flex: 1; }
+  .panel-body.tight { padding: 0; }
+  .panel-footer {
+    padding: 10px 18px; border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-faint);
+    display: flex; justify-content: space-between;
+  }
+
+  .panel-grid { display: grid; gap: 20px; margin-bottom: 20px; }
+  .panel-grid.two { grid-template-columns: 1fr 1fr; }
+  .panel-grid.split { grid-template-columns: 3fr 2fr; }
+
+  /* LTV:CAC grid table */
+  .ltv-table { width: 100%; border-collapse: collapse; }
+  .ltv-table th {
+    text-align: left; font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--ink-faint); padding: 10px 16px;
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+  .ltv-table th.r { text-align: right; }
+  .ltv-table td {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    font-size: 12px; vertical-align: middle;
+  }
+  .ltv-table td.r { text-align: right; font-family: 'JetBrains Mono', monospace; }
+  .ltv-table tr:last-child td { border-bottom: none; }
+  .ltv-table tr.total td { background: rgba(184,214,102,0.04); font-weight: 500; border-top: 1px solid var(--border-strong); }
+  .ltv-table tr:hover td:not(.hover-off) { background: rgba(184,214,102,0.02); }
+  .channel-name { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+  .channel-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .ratio-pill {
+    padding: 3px 8px; border-radius: 2px; font-size: 11px;
+    font-family: 'JetBrains Mono', monospace; display: inline-block;
+  }
+  .ratio-pill.good { background: var(--accent-deep); color: var(--accent); }
+  .ratio-pill.ok { background: rgba(123,163,184,0.18); color: var(--info); }
+  .ratio-pill.warn { background: rgba(212,162,76,0.2); color: var(--warn); }
+  .ratio-pill.bad { background: rgba(201,90,75,0.2); color: var(--danger); }
+  .pay-bar {
+    display: inline-block; width: 60px; height: 4px;
+    background: var(--border); border-radius: 2px; vertical-align: middle;
+    position: relative; overflow: hidden; margin-right: 8px;
+  }
+  .pay-bar > div { height: 100%; background: var(--accent); }
+  .pay-bar > div.warn { background: var(--warn); }
+  .pay-bar > div.danger { background: var(--danger); }
+
+  /* Cohort heat table */
+  .cohort-heat {
+    display: grid;
+    grid-template-columns: 90px repeat(7, 1fr);
+    gap: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cohort-heat .hd {
+    padding: 8px 4px; text-align: center;
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .cohort-heat .hd.l { text-align: left; padding-left: 0; }
+  .cohort-heat .row-label {
+    padding: 10px 0; font-family: 'Inter Tight', sans-serif;
+    font-size: 11.5px; color: var(--ink); display: flex; align-items: center; gap: 8px;
+  }
+  .cohort-heat .row-label .sub { font-size: 9px; color: var(--ink-dim); }
+  .heat-cell {
+    padding: 10px 4px; text-align: center; font-size: 11px;
+    border-radius: 2px; cursor: default;
+  }
+
+  /* Waterfall / unit economics */
+  .waterfall {
+    display: grid; grid-template-columns: 1fr auto 100px;
+    gap: 14px; padding: 10px 0;
+    align-items: center;
+    border-bottom: 1px dashed var(--border);
+    font-size: 12px;
+  }
+  .waterfall:last-child { border-bottom: none; }
+  .waterfall.total {
+    border-top: 1px solid var(--border-strong);
+    margin-top: 8px; padding-top: 14px;
+    border-bottom: none; font-weight: 500;
+  }
+  .wf-label { color: var(--ink); }
+  .wf-label .quiet { color: var(--ink-dim); font-size: 11px; }
+  .wf-bar {
+    width: 140px; height: 20px; background: var(--border);
+    border-radius: 2px; position: relative;
+  }
+  .wf-fill {
+    height: 100%; border-radius: 2px;
+    background: var(--accent); opacity: 0.8;
+  }
+  .wf-fill.cost { background: var(--danger); opacity: 0.6; }
+  .wf-val {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right; color: var(--ink);
+  }
+  .wf-val.neg { color: var(--danger); }
+  .wf-val.final { font-size: 14px; color: var(--accent); }
+
+  /* Driver bars */
+  .driver-list { display: grid; gap: 14px; padding: 4px 0; }
+  .driver-item {
+    display: grid; grid-template-columns: 1fr auto; gap: 10px;
+    align-items: center;
+  }
+  .driver-head { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 6px; }
+  .driver-head .lbl { color: var(--ink); }
+  .driver-head .val { font-family: 'JetBrains Mono', monospace; color: var(--accent); }
+  .driver-head .val.neg { color: var(--danger); }
+  .driver-track {
+    position: relative; height: 5px;
+    background: var(--border); border-radius: 3px;
+    overflow: hidden;
+  }
+  .driver-track .mid {
+    position: absolute; left: 50%; top: 0; width: 1px; height: 100%;
+    background: var(--ink-faint);
+  }
+  .driver-fill {
+    position: absolute; top: 0; height: 100%;
+    background: var(--accent); border-radius: 3px;
+  }
+  .driver-fill.neg { background: var(--danger); }
+  .driver-sub {
+    grid-column: 1 / -1;
+    font-size: 10.5px; color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+  }
+
+  /* Journey funnel */
+  .journey {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px;
+    margin: 6px 0;
+  }
+  .journey-stage {
+    background: var(--bg-elev); padding: 14px 10px;
+    text-align: center; border-radius: 2px;
+    position: relative;
+  }
+  .journey-stage .stage-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 6px;
+  }
+  .journey-stage .stage-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px; color: var(--ink); font-weight: 500;
+  }
+  .journey-stage .stage-pct {
+    font-size: 10px; color: var(--ink-dim);
+    margin-top: 4px; font-family: 'JetBrains Mono', monospace;
+  }
+  .journey-stage .stage-drop {
+    margin-top: 8px; font-size: 10px;
+    color: var(--danger); font-family: 'JetBrains Mono', monospace;
+  }
+  .journey-stage.critical { background: rgba(201,90,75,0.06); border: 1px solid rgba(201,90,75,0.2); }
+  .journey-note {
+    grid-column: 1 / -1; font-size: 11px; color: var(--ink-dim);
+    padding: 10px 0 0; font-style: italic;
+  }
+
+  /* Scenario card */
+  .scenario-card {
+    background: var(--bg-elev); border: 1px solid var(--border-strong);
+    padding: 14px 16px; border-radius: 3px;
+    margin-bottom: 10px;
+  }
+  .scenario-title {
+    font-family: 'Fraunces', serif; font-size: 13px;
+    color: var(--ink); margin-bottom: 4px;
+  }
+  .scenario-desc {
+    font-size: 11px; color: var(--ink-dim); line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .scenario-impact {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  }
+  .scenario-impact .lbl { color: var(--ink-faint); }
+  .scenario-impact .val { color: var(--accent); }
+
+  .footnote {
+    margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--ink-faint);
+  }
+
+  @media (max-width: 1200px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .panel-grid.two, .panel-grid.split { grid-template-columns: 1fr; }
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .journey { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">gr<span class="u">ü</span>ns / Signal Desk</div>
+    <span class="brand-divider">·</span>
+    <span class="brand-sub">Retention Room · Cohort Economics</span>
+  </div>
+  <div class="topbar-right">
+    <a href="index.html" class="back-link">← Signal Desk</a>
+    <span>Blended LTV $287 · CAC $68</span>
+    <span>Target LTV:CAC 4.0×</span>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <a href="index.html"><div class="nav-item"><span class="dot"></span>Signal Desk</div></a>
+      <div class="nav-item active"><span class="dot"></span>Retention Room</div>
+      <a href="forecast.html"><div class="nav-item"><span class="dot"></span>Forecast Studio</div></a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Signals</div>
+      <div class="nav-item"><span class="dot"></span>Social Velocity<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Search Intent<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Panel Survey<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Review Corpus<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Competitor Set<span class="badge">soon</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Product</div>
+      <div class="nav-item"><span class="dot"></span>SKU Heatmap<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Flavor Telemetry<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Ingredient Lens<span class="badge">soon</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Admin</div>
+      <a href="integrity.html"><div class="nav-item"><span class="dot"></span>Data Integrity</div></a>
+      <div class="nav-item"><span class="dot"></span>Data Sources<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Alerts<span class="badge">soon</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="headline">
+      <div>
+        <h1>The <em>retention room</em>.</h1>
+        <div class="sub">Where subscription economics live or die. This page decomposes retention by acquisition channel, identifies the journey moments that predict churn, and lays out the unit economics that should govern marketing spend.</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Blended LTV</div>
+        <div class="kpi-value num">$287</div>
+        <div class="kpi-delta delta-up">▲ $12 vs Q4</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Blended CAC</div>
+        <div class="kpi-value num">$68</div>
+        <div class="kpi-delta delta-down">▲ $7 vs Q4</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">LTV:CAC</div>
+        <div class="kpi-value num">4.2<span class="unit">×</span></div>
+        <div class="kpi-delta delta-up">vs target 4.0×</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">CAC Payback</div>
+        <div class="kpi-value num warn">9.4<span class="unit">mo</span></div>
+        <div class="kpi-delta delta-down">▲ 1.1mo vs Q4</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Gross Retention M12</div>
+        <div class="kpi-value num">61<span class="unit">%</span></div>
+        <div class="kpi-delta delta-neutral">— flat</div>
+      </div>
+    </div>
+
+    <!-- LTV:CAC by channel -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">LTV:CAC by acquisition channel <span class="accent">/ where spend earns its return</span></div>
+        <div class="panel-meta">trailing 12 months · n=47,312 subscribers</div>
+      </div>
+      <div class="panel-body tight">
+        <table class="ltv-table">
+          <thead>
+            <tr>
+              <th>Channel</th>
+              <th class="r">New subs / mo</th>
+              <th class="r">CAC</th>
+              <th class="r">M12 retention</th>
+              <th class="r">LTV</th>
+              <th class="r">LTV:CAC</th>
+              <th>Payback</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="channel-name"><span class="channel-dot" style="background:var(--accent);"></span>Organic / SEO</div></td>
+              <td class="r">1,840</td>
+              <td class="r">$18</td>
+              <td class="r" style="color:var(--accent);">82%</td>
+              <td class="r">$412</td>
+              <td class="r"><span class="ratio-pill good">22.9×</span></td>
+              <td class="r"><span class="pay-bar"><div style="width:15%;"></div></span>2.1mo</td>
+              <td><span class="ratio-pill good">SCALE</span></td>
+            </tr>
+            <tr>
+              <td><div class="channel-name"><span class="channel-dot" style="background:#C89DD6;"></span>Referral</div></td>
+              <td class="r">720</td>
+              <td class="r">$24</td>
+              <td class="r" style="color:var(--accent);">78%</td>
+              <td class="r">$378</td>
+              <td class="r"><span class="ratio-pill good">15.8×</span></td>
+              <td class="r"><span class="pay-bar"><div style="width:22%;"></div></span>2.8mo</td>
+              <td><span class="ratio-pill good">SCALE</span></td>
+            </tr>
+            <tr>
+              <td><div class="channel-name"><span class="channel-dot" style="background:var(--info);"></span>Paid search</div></td>
+              <td class="r">2,120</td>
+              <td class="r">$52</td>
+              <td class="r">68%</td>
+              <td class="r">$298</td>
+              <td class="r"><span class="ratio-pill good">5.7×</span></td>
+              <td class="r"><span class="pay-bar"><div style="width:48%;"></div></span>6.2mo</td>
+              <td><span class="ratio-pill good">HOLD</span></td>
+            </tr>
+            <tr>
+              <td><div class="channel-name"><span class="channel-dot" style="background:#8DA9C4;"></span>Meta / IG</div></td>
+              <td class="r">1,680</td>
+              <td class="r">$64</td>
+              <td class="r">62%</td>
+              <td class="r">$241</td>
+              <td class="r"><span class="ratio-pill ok">3.8×</span></td>
+              <td class="r"><span class="pay-bar"><div style="width:62%;"></div></span>8.1mo</td>
+              <td><span class="ratio-pill ok">OPTIMIZE</span></td>
+            </tr>
+            <tr>
+              <td><div class="channel-name"><span class="channel-dot" style="background:var(--warn);"></span>TikTok (creator)</div></td>
+              <td class="r">1,520</td>
+              <td class="r">$89</td>
+              <td class="r" style="color:var(--warn);">58%</td>
+              <td class="r">$213</td>
+              <td class="r"><span class="ratio-pill warn">2.4×</span></td>
+              <td class="r"><span class="pay-bar"><div class="warn" style="width:88%;"></div></span>11.4mo</td>
+              <td><span class="ratio-pill warn">FIX</span></td>
+            </tr>
+            <tr>
+              <td><div class="channel-name"><span class="channel-dot" style="background:#E88B5A;"></span>Influencer (macro)</div></td>
+              <td class="r">430</td>
+              <td class="r">$142</td>
+              <td class="r" style="color:var(--danger);">49%</td>
+              <td class="r">$178</td>
+              <td class="r"><span class="ratio-pill bad">1.3×</span></td>
+              <td class="r"><span class="pay-bar"><div class="danger" style="width:100%;"></div></span>16.8mo</td>
+              <td><span class="ratio-pill bad">PAUSE</span></td>
+            </tr>
+            <tr>
+              <td><div class="channel-name"><span class="channel-dot" style="background:#7BA3B8;"></span>Affiliate</div></td>
+              <td class="r">380</td>
+              <td class="r">$41</td>
+              <td class="r">71%</td>
+              <td class="r">$324</td>
+              <td class="r"><span class="ratio-pill good">7.9×</span></td>
+              <td class="r"><span class="pay-bar"><div style="width:38%;"></div></span>4.9mo</td>
+              <td><span class="ratio-pill good">SCALE</span></td>
+            </tr>
+            <tr class="total">
+              <td><div class="channel-name" style="font-weight:500;">Blended</div></td>
+              <td class="r">8,690</td>
+              <td class="r">$68</td>
+              <td class="r">67%</td>
+              <td class="r">$287</td>
+              <td class="r"><span class="ratio-pill good">4.2×</span></td>
+              <td class="r"><span class="pay-bar"><div class="warn" style="width:72%;"></div></span>9.4mo</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-footer">
+        <span>Recommend: reallocate $180k/mo macro-influencer budget to SEO content (capacity-gated) and affiliate expansion</span>
+        <span>see scenario modeler →</span>
+      </div>
+    </div>
+
+    <!-- Cohort heatmap + Unit economics waterfall -->
+    <div class="panel-grid split">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Cohort retention matrix <span class="accent">/ % of subscribers still active</span></div>
+          <div class="panel-meta">by acquisition month</div>
+        </div>
+        <div class="panel-body">
+          <div class="cohort-heat">
+            <div class="hd l"></div>
+            <div class="hd">M1</div>
+            <div class="hd">M2</div>
+            <div class="hd">M3</div>
+            <div class="hd">M6</div>
+            <div class="hd">M9</div>
+            <div class="hd">M12</div>
+            <div class="hd">N</div>
+
+            <div class="row-label">Oct'24<span class="sub">(m+6)</span></div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.32); color:var(--accent);">89%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.28); color:var(--accent);">78%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.24); color:var(--accent);">71%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.18); color:var(--accent);">64%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.14); color:var(--accent);">59%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.12); color:var(--accent);">54%</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-dim);">6.8k</div>
+
+            <div class="row-label">Nov'24<span class="sub">(m+5)</span></div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.30); color:var(--accent);">87%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.24); color:var(--accent);">74%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.22); color:var(--accent);">68%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.16); color:var(--accent);">62%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.12); color:var(--accent);">56%</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-dim);">7.2k</div>
+
+            <div class="row-label">Dec'24<span class="sub">(m+4)</span></div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.28); color:var(--accent);">84%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.22); color:var(--accent);">71%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.18); color:var(--accent);">64%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.14); color:var(--accent);">58%</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-dim);">8.9k</div>
+
+            <div class="row-label">Jan'25<span class="sub">(m+3)</span></div>
+            <div class="heat-cell" style="background:rgba(212,162,76,0.22); color:var(--warn);">82%</div>
+            <div class="heat-cell" style="background:rgba(212,162,76,0.22); color:var(--warn);">66%</div>
+            <div class="heat-cell" style="background:rgba(212,162,76,0.24); color:var(--warn);">58%</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-dim);">9.8k</div>
+
+            <div class="row-label">Feb'25<span class="sub">(m+2)</span></div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.26); color:var(--accent);">85%</div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.20); color:var(--accent);">72%</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-dim);">8.4k</div>
+
+            <div class="row-label">Mar'25<span class="sub">(m+1)</span></div>
+            <div class="heat-cell" style="background:rgba(184,214,102,0.22); color:var(--accent);">83%</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-faint);">—</div>
+            <div class="heat-cell" style="background:var(--bg-elev); color:var(--ink-dim);">7.9k</div>
+          </div>
+          <p style="font-size:11.5px;color:var(--ink-dim);margin-top:18px;line-height:1.6;">The Jan'25 cohort (yellow) underperformed peer cohorts at M1, M2, and M3. Acquisition mix that month skewed heavily TikTok (38% vs 18% typical) following a viral creator campaign. Retention intervention at M2 recommended for all subsequent TikTok-heavy cohorts.</p>
+        </div>
+        <div class="panel-footer">
+          <span>Refreshed daily · true subscription status (no payment-retry artifacts)</span>
+          <span>export to CFO pack →</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Unit economics <span class="accent">/ blended subscriber</span></div>
+          <div class="panel-meta">24-month horizon</div>
+        </div>
+        <div class="panel-body">
+          <div class="waterfall">
+            <div class="wf-label">Avg revenue / customer <span class="quiet">(24mo)</span></div>
+            <div class="wf-bar"><div class="wf-fill" style="width:100%;"></div></div>
+            <div class="wf-val">$428</div>
+          </div>
+          <div class="waterfall">
+            <div class="wf-label">− COGS <span class="quiet">(ingredients, fulfillment)</span></div>
+            <div class="wf-bar"><div class="wf-fill cost" style="width:39%;"></div></div>
+            <div class="wf-val neg">−$167</div>
+          </div>
+          <div class="waterfall">
+            <div class="wf-label">− Shipping subsidy</div>
+            <div class="wf-bar"><div class="wf-fill cost" style="width:11%;"></div></div>
+            <div class="wf-val neg">−$48</div>
+          </div>
+          <div class="waterfall">
+            <div class="wf-label">− Payment / platform fees</div>
+            <div class="wf-bar"><div class="wf-fill cost" style="width:4%;"></div></div>
+            <div class="wf-val neg">−$17</div>
+          </div>
+          <div class="waterfall">
+            <div class="wf-label">= Gross profit / customer</div>
+            <div class="wf-bar"><div class="wf-fill" style="width:46%;"></div></div>
+            <div class="wf-val">$196</div>
+          </div>
+          <div class="waterfall">
+            <div class="wf-label">− Retention / CX ops allocation</div>
+            <div class="wf-bar"><div class="wf-fill cost" style="width:6%;"></div></div>
+            <div class="wf-val neg">−$26</div>
+          </div>
+          <div class="waterfall">
+            <div class="wf-label">= Contribution margin</div>
+            <div class="wf-bar"><div class="wf-fill" style="width:40%;"></div></div>
+            <div class="wf-val">$170</div>
+          </div>
+          <div class="waterfall">
+            <div class="wf-label">− CAC <span class="quiet">(blended)</span></div>
+            <div class="wf-bar"><div class="wf-fill cost" style="width:16%;"></div></div>
+            <div class="wf-val neg">−$68</div>
+          </div>
+          <div class="waterfall total">
+            <div class="wf-label">= Profit / acquired customer</div>
+            <div class="wf-bar"><div class="wf-fill" style="width:24%;"></div></div>
+            <div class="wf-val final">$102</div>
+          </div>
+          <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--ink-dim);line-height:1.6;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Gross margin</span><span class="num" style="color:var(--accent);">45.8%</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Contribution margin</span><span class="num" style="color:var(--accent);">39.7%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Rule-of-40 contribution</span><span class="num" style="color:var(--accent);">+8.1 pts</span></div>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <span>Revenue figure includes standard-plan pricing, tier mix, and churn-weighted duration</span>
+          <span>assumptions doc →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journey + retention drivers -->
+    <div class="panel-grid split">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Subscriber journey <span class="accent">/ where we lose people</span></div>
+          <div class="panel-meta">conversion by stage</div>
+        </div>
+        <div class="panel-body">
+          <div class="journey">
+            <div class="journey-stage">
+              <div class="stage-name">Landing</div>
+              <div class="stage-val num">100k</div>
+              <div class="stage-pct">visitors / mo</div>
+            </div>
+            <div class="journey-stage">
+              <div class="stage-name">PDP</div>
+              <div class="stage-val num">34k</div>
+              <div class="stage-pct">34% conv</div>
+              <div class="stage-drop">−66%</div>
+            </div>
+            <div class="journey-stage">
+              <div class="stage-name">Checkout</div>
+              <div class="stage-val num">12k</div>
+              <div class="stage-pct">35% conv</div>
+              <div class="stage-drop">−65%</div>
+            </div>
+            <div class="journey-stage">
+              <div class="stage-name">First order</div>
+              <div class="stage-val num">9.1k</div>
+              <div class="stage-pct">76% conv</div>
+              <div class="stage-drop">−24%</div>
+            </div>
+            <div class="journey-stage critical">
+              <div class="stage-name">M2 renewal</div>
+              <div class="stage-val num" style="color:var(--danger);">6.7k</div>
+              <div class="stage-pct">74% conv</div>
+              <div class="stage-drop">−26% <span style="color:var(--ink-faint);">← crit.</span></div>
+            </div>
+            <div class="journey-stage">
+              <div class="stage-name">M12 active</div>
+              <div class="stage-val num">4.1k</div>
+              <div class="stage-pct">61% conv</div>
+              <div class="stage-drop">−39%</div>
+            </div>
+            <div class="journey-note">The M2 renewal step is where retention economics actually get decided. Moving M2 from 74% → 80% shifts LTV:CAC from 4.2× to 5.1× — bigger impact than any CAC reduction in our range of possibility.</div>
+          </div>
+
+          <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--border);">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:12px;">M2 CHURN REASONS (EXIT SURVEY, n=2,847)</div>
+            <div style="display:grid;gap:8px;">
+              <div style="display:grid;grid-template-columns:1fr 60px 40px;gap:10px;font-size:11.5px;align-items:center;">
+                <span>Forgot / habit friction</span>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:76%;height:100%;background:var(--danger);"></div></div>
+                <span class="num" style="text-align:right;color:var(--ink-dim);">31%</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 60px 40px;gap:10px;font-size:11.5px;align-items:center;">
+                <span>Price / too expensive</span>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:54%;height:100%;background:var(--warn);"></div></div>
+                <span class="num" style="text-align:right;color:var(--ink-dim);">22%</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 60px 40px;gap:10px;font-size:11.5px;align-items:center;">
+                <span>Didn't notice a difference</span>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:42%;height:100%;background:var(--warn);"></div></div>
+                <span class="num" style="text-align:right;color:var(--ink-dim);">17%</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 60px 40px;gap:10px;font-size:11.5px;align-items:center;">
+                <span>Switched to competitor</span>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:28%;height:100%;background:var(--info);"></div></div>
+                <span class="num" style="text-align:right;color:var(--ink-dim);">11%</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 60px 40px;gap:10px;font-size:11.5px;align-items:center;">
+                <span>Taste</span>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:20%;height:100%;background:var(--info);"></div></div>
+                <span class="num" style="text-align:right;color:var(--ink-dim);">8%</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 60px 40px;gap:10px;font-size:11.5px;align-items:center;">
+                <span>Other</span>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:28%;height:100%;background:var(--ink-dim);"></div></div>
+                <span class="num" style="text-align:right;color:var(--ink-dim);">11%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <span>Top reason is habit formation, not product dissatisfaction — solvable with onboarding design</span>
+          <span>exit survey response rate 38%</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Retention predictors <span class="accent">/ what differentiates stayers</span></div>
+          <div class="panel-meta">logistic regression · n=47k</div>
+        </div>
+        <div class="panel-body">
+          <p style="font-size:11.5px;color:var(--ink-dim);margin-bottom:18px;line-height:1.6;">Model isolates in-product signals during M1 that predict M6+ retention. Coefficients are standardized — bar length reflects relative impact, not absolute probability.</p>
+          <div class="driver-list">
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">Took gummy ≥20 days in M1</span><span class="val">+28%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill" style="left:50%;width:34%;"></div></div>
+                <div class="driver-sub">habit formation · strongest positive signal</div>
+              </div>
+            </div>
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">Opened onboarding email ≥3</span><span class="val">+19%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill" style="left:50%;width:22%;"></div></div>
+                <div class="driver-sub">engagement with education content</div>
+              </div>
+            </div>
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">Posted review</span><span class="val">+16%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill" style="left:50%;width:18%;"></div></div>
+                <div class="driver-sub">identity commitment via public signal</div>
+              </div>
+            </div>
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">Variety pack as first order</span><span class="val">+12%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill" style="left:50%;width:14%;"></div></div>
+                <div class="driver-sub">reduces "wrong flavor" churn risk</div>
+              </div>
+            </div>
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">Gifted a subscription</span><span class="val">+9%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill" style="left:50%;width:11%;"></div></div>
+                <div class="driver-sub">social tie strengthens retention</div>
+              </div>
+            </div>
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">TikTok-sourced</span><span class="val neg">−14%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill neg" style="right:50%;width:17%;"></div></div>
+                <div class="driver-sub">even controlling for other factors</div>
+              </div>
+            </div>
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">Used discount code &gt;30% off</span><span class="val neg">−11%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill neg" style="right:50%;width:13%;"></div></div>
+                <div class="driver-sub">price-anchoring effect on renewal intent</div>
+              </div>
+            </div>
+            <div class="driver-item">
+              <div>
+                <div class="driver-head"><span class="lbl">Skipped a shipment in M1</span><span class="val neg">−22%</span></div>
+                <div class="driver-track"><div class="mid"></div><div class="driver-fill neg" style="right:50%;width:26%;"></div></div>
+                <div class="driver-sub">habit disruption · strongest negative signal</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <span>Model AUC 0.74 · retrained monthly</span>
+          <span>intervene on skip-behavior in M1 →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Intervention menu -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Intervention playbook <span class="accent">/ tested levers, ranked by expected LTV lift</span></div>
+        <div class="panel-meta">informed by A/B tests + retention model</div>
+      </div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <div class="scenario-card">
+            <div class="scenario-title">M1 habit nudge (SMS)</div>
+            <div class="scenario-desc">Day-3 / day-14 / day-21 text messages tied to first-order shipment. Tested in Q3'25 A/B.</div>
+            <div class="scenario-impact"><span class="lbl">M2 retention lift</span><span class="val">+4.8pp</span></div>
+            <div class="scenario-impact"><span class="lbl">LTV lift / sub</span><span class="val">+$21</span></div>
+            <div class="scenario-impact"><span class="lbl">Cost / sub</span><span class="val" style="color:var(--ink-dim);">$0.80</span></div>
+          </div>
+          <div class="scenario-card">
+            <div class="scenario-title">Variety pack default</div>
+            <div class="scenario-desc">Default new subscribers to variety pack instead of requiring flavor choice at checkout. Reduces decision fatigue and wrong-flavor churn.</div>
+            <div class="scenario-impact"><span class="lbl">M2 retention lift</span><span class="val">+3.1pp</span></div>
+            <div class="scenario-impact"><span class="lbl">LTV lift / sub</span><span class="val">+$14</span></div>
+            <div class="scenario-impact"><span class="lbl">Cost / sub</span><span class="val" style="color:var(--ink-dim);">$0</span></div>
+          </div>
+          <div class="scenario-card">
+            <div class="scenario-title">M2 pause-not-cancel offer</div>
+            <div class="scenario-desc">Cancel-flow intercept offering 1-month pause instead of full cancellation. 34% of pausers come back by M4.</div>
+            <div class="scenario-impact"><span class="lbl">M2 retention lift</span><span class="val">+2.6pp</span></div>
+            <div class="scenario-impact"><span class="lbl">LTV lift / sub</span><span class="val">+$12</span></div>
+            <div class="scenario-impact"><span class="lbl">Cost / sub</span><span class="val" style="color:var(--ink-dim);">$0</span></div>
+          </div>
+          <div class="scenario-card">
+            <div class="scenario-title">TikTok cohort deep-onboarding</div>
+            <div class="scenario-desc">Extended email sequence (7 vs 3 emails) for subscribers acquired via TikTok, emphasizing ingredient quality and habit formation.</div>
+            <div class="scenario-impact"><span class="lbl">M2 retention lift</span><span class="val">+5.2pp <span style="color:var(--ink-faint);font-size:10px;">(TikTok only)</span></span></div>
+            <div class="scenario-impact"><span class="lbl">LTV lift / sub</span><span class="val">+$19</span></div>
+            <div class="scenario-impact"><span class="lbl">Cost / sub</span><span class="val" style="color:var(--ink-dim);">$0.30</span></div>
+          </div>
+          <div class="scenario-card">
+            <div class="scenario-title">Smart refill timing</div>
+            <div class="scenario-desc">Ship refill 2 days before subscriber would run out (based on consumption data), not on fixed calendar. Reduces skip-rate.</div>
+            <div class="scenario-impact"><span class="lbl">M2 retention lift</span><span class="val">+2.2pp</span></div>
+            <div class="scenario-impact"><span class="lbl">LTV lift / sub</span><span class="val">+$10</span></div>
+            <div class="scenario-impact"><span class="lbl">Cost / sub</span><span class="val" style="color:var(--ink-dim);">$0</span></div>
+          </div>
+          <div class="scenario-card">
+            <div class="scenario-title">Annual plan push</div>
+            <div class="scenario-desc">Incentivize switch from monthly to annual (12 → 9mo price) at M3 renewal. Locks in LTV but compresses gross margin.</div>
+            <div class="scenario-impact"><span class="lbl">M12 retention lift</span><span class="val">+12pp <span style="color:var(--ink-faint);font-size:10px;">(annual sub)</span></span></div>
+            <div class="scenario-impact"><span class="lbl">LTV lift / sub</span><span class="val">+$38</span></div>
+            <div class="scenario-impact"><span class="lbl">Margin cost</span><span class="val" style="color:var(--warn);">−$47</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <span>Stacking: top 3 interventions combined deliver estimated +9.4pp M2 retention and +$43 LTV/sub · capacity-constrained rollout recommended</span>
+        <span><a href="forecast.html" style="color:var(--ink-dim);">model in Forecast Studio →</a></span>
+      </div>
+    </div>
+
+    <div class="footnote">
+      <span>grüns / Retention Room v2.4.1 · cohort data from first-party CDP · exit survey via Delighted · retention model retrained monthly</span>
+      <span>built for operator decisions · confidential</span>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

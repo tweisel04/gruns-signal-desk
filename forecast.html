@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Grüns — Forecast Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E0F0B;
+    --bg-elev: #15170F;
+    --bg-card: #1A1D14;
+    --border: #2A2E22;
+    --border-strong: #3A3F30;
+    --ink: #E8E6DC;
+    --ink-dim: #9A9B8C;
+    --ink-faint: #5F6354;
+    --accent: #B8D666;
+    --accent-dim: #7A9142;
+    --accent-deep: #3D4D20;
+    --warn: #D4A24C;
+    --danger: #C95A4B;
+    --info: #7BA3B8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num, .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+  a { color: inherit; text-decoration: none; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    background: var(--bg-elev); position: sticky; top: 0; z-index: 50;
+  }
+  .brand { display: flex; align-items: baseline; gap: 14px; }
+  .brand-mark {
+    font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .brand-mark .u { color: var(--accent); font-style: italic; }
+  .brand-divider { color: var(--ink-faint); font-size: 11px; }
+  .brand-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-dim);
+  }
+  .topbar-right {
+    display: flex; align-items: center; gap: 20px; font-size: 11px;
+    color: var(--ink-dim); font-family: 'JetBrains Mono', monospace;
+  }
+  .back-link {
+    color: var(--accent); padding: 3px 8px; border: 1px solid var(--accent-dim);
+    border-radius: 3px; font-size: 10px;
+  }
+  .btn-reset {
+    background: transparent; border: 1px solid var(--border-strong);
+    color: var(--ink-dim); padding: 4px 10px; border-radius: 3px;
+    cursor: pointer; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em;
+  }
+  .btn-reset:hover { color: var(--ink); border-color: var(--accent-dim); }
+
+  .shell {
+    display: grid; grid-template-columns: 200px 1fr;
+    min-height: calc(100vh - 52px);
+  }
+  .sidebar {
+    border-right: 1px solid var(--border); padding: 24px 0;
+    background: var(--bg-elev);
+  }
+  .nav-group { margin-bottom: 28px; }
+  .nav-label {
+    padding: 0 20px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 20px; cursor: pointer;
+    color: var(--ink-dim); font-size: 12.5px;
+    border-left: 2px solid transparent; transition: all 0.15s;
+  }
+  .nav-item:hover { color: var(--ink); background: rgba(184,214,102,0.03); }
+  .nav-item.active {
+    color: var(--accent); border-left-color: var(--accent);
+    background: linear-gradient(90deg, rgba(184,214,102,0.08), transparent);
+  }
+  .nav-item .dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+  .nav-item .badge { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 2px; background: var(--border); color: var(--ink-dim); letter-spacing: 0.05em; }
+
+  .main { padding: 28px 32px 60px; max-width: 1600px; }
+  .headline {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .headline h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px; font-weight: 400; letter-spacing: -0.02em;
+  }
+  .headline h1 em { color: var(--accent); font-style: italic; }
+  .headline .sub {
+    font-size: 12px; color: var(--ink-dim); margin-top:6px; max-width: 680px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 20px 0 24px; }
+
+  /* Studio layout */
+  .studio {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Controls column */
+  .controls-col {
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .panel {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 2px;
+    display: flex; flex-direction: column;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 12px; border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .panel-title .accent { color: var(--accent); }
+  .panel-meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-dim); letter-spacing: 0.08em;
+  }
+  .panel-body { padding: 18px; }
+  .panel-body.tight { padding: 0; }
+  .panel-footer {
+    padding: 10px 18px; border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-faint);
+  }
+
+  /* Sliders */
+  .slider-group { margin-bottom: 22px; }
+  .slider-group:last-child { margin-bottom: 0; }
+  .slider-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .slider-label {
+    font-size: 12.5px; color: var(--ink);
+  }
+  .slider-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--accent);
+    min-width: 55px; text-align: right;
+  }
+  .slider-value.neg { color: var(--danger); }
+  .slider-wrap { position: relative; padding: 8px 0 4px; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: var(--border); border-radius: 2px;
+    outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    background: var(--accent); border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 3px var(--bg-card), 0 0 0 4px var(--accent-dim);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    background: var(--accent); border-radius: 50%;
+    cursor: pointer; border: none;
+    box-shadow: 0 0 0 3px var(--bg-card), 0 0 0 4px var(--accent-dim);
+  }
+  .slider-ticks {
+    display: flex; justify-content: space-between;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--ink-faint);
+  }
+  .slider-hint {
+    font-size: 11px; color: var(--ink-dim); margin-top: 6px; line-height: 1.5;
+  }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px dashed var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label {
+    font-size: 12.5px; color: var(--ink);
+  }
+  .toggle-label .sub {
+    display: block; font-size: 11px; color: var(--ink-dim); margin-top: 3px; font-weight: normal;
+  }
+  .toggle-switch {
+    position: relative; width: 40px; height: 22px;
+    background: var(--border); border-radius: 11px;
+    cursor: pointer; transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--accent-dim); }
+  .toggle-switch::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--ink); transition: transform 0.2s;
+  }
+  .toggle-switch.on::after { transform: translateX(18px); background: var(--accent); }
+
+  /* Output column */
+  .output-col { display: flex; flex-direction: column; gap: 20px; }
+
+  /* Forecast chart */
+  .forecast-chart {
+    width: 100%; height: 320px;
+  }
+  .hero-metrics {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; background: var(--border);
+    border-top: 1px solid var(--border);
+  }
+  .hero-m {
+    background: var(--bg-card); padding: 16px 18px;
+  }
+  .hero-m-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 8px;
+  }
+  .hero-m-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; color: var(--accent);
+    line-height: 1;
+  }
+  .hero-m-val.warn { color: var(--warn); }
+  .hero-m-val.neg { color: var(--danger); }
+  .hero-m-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; color: var(--ink-dim);
+    margin-top: 4px;
+  }
+  .hero-m-delta.up { color: var(--accent); }
+  .hero-m-delta.down { color: var(--danger); }
+
+  /* Scenario comparison */
+  .comp-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .comp-card {
+    background: var(--bg-elev); border: 1px solid var(--border-strong);
+    padding: 16px; border-radius: 2px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .comp-card:hover { border-color: var(--accent-dim); }
+  .comp-card.active { border-color: var(--accent); background: rgba(184,214,102,0.04); }
+  .comp-name {
+    font-family: 'Fraunces', serif; font-size: 13px; margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .comp-card.active .comp-name { color: var(--accent); }
+  .comp-desc { font-size: 11px; color: var(--ink-dim); line-height: 1.5; margin-bottom: 12px; min-height: 48px; }
+  .comp-metrics {
+    display: grid; gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .comp-metric-row {
+    display: flex; justify-content: space-between;
+  }
+  .comp-metric-row .k { color: var(--ink-faint); }
+  .comp-metric-row .v { color: var(--ink); }
+
+  /* Sensitivity tornado */
+  .tornado {
+    display: grid; gap: 10px;
+  }
+  .tornado-row {
+    display: grid; grid-template-columns: 140px 1fr 60px;
+    gap: 12px; align-items: center;
+    font-size: 11.5px;
+  }
+  .tornado-label { color: var(--ink); }
+  .tornado-bar {
+    position: relative; height: 18px;
+    background: rgba(42,46,34,0.4); border-radius: 2px;
+  }
+  .tornado-bar .mid {
+    position: absolute; left: 50%; top: 0; width: 1px; height: 100%;
+    background: var(--ink-faint);
+  }
+  .tornado-bar .neg {
+    position: absolute; right: 50%; top: 0; height: 100%;
+    background: var(--danger); opacity: 0.8; border-radius: 2px 0 0 2px;
+  }
+  .tornado-bar .pos {
+    position: absolute; left: 50%; top: 0; height: 100%;
+    background: var(--accent); opacity: 0.8; border-radius: 0 2px 2px 0;
+  }
+  .tornado-range {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--ink-dim); text-align: right;
+  }
+
+  .footnote {
+    margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--ink-faint);
+  }
+
+  @media (max-width: 1200px) {
+    .studio { grid-template-columns: 1fr; }
+    .hero-metrics { grid-template-columns: repeat(2, 1fr); }
+    .comp-grid { grid-template-columns: 1fr; }
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">gr<span class="u">ü</span>ns / Signal Desk</div>
+    <span class="brand-divider">·</span>
+    <span class="brand-sub">Forecast Studio · Scenario Modeling</span>
+  </div>
+  <div class="topbar-right">
+    <a href="index.html" class="back-link">← Signal Desk</a>
+    <span>Model v2.4 · MAE 8.3%</span>
+    <button class="btn-reset" onclick="resetAll()">RESET</button>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <a href="index.html"><div class="nav-item"><span class="dot"></span>Signal Desk</div></a>
+      <a href="retention.html"><div class="nav-item"><span class="dot"></span>Retention Room</div></a>
+      <div class="nav-item active"><span class="dot"></span>Forecast Studio</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Signals</div>
+      <div class="nav-item"><span class="dot"></span>Social Velocity<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Search Intent<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Panel Survey<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Review Corpus<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Competitor Set<span class="badge">soon</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Product</div>
+      <div class="nav-item"><span class="dot"></span>SKU Heatmap<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Flavor Telemetry<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Ingredient Lens<span class="badge">soon</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Admin</div>
+      <a href="integrity.html"><div class="nav-item"><span class="dot"></span>Data Integrity</div></a>
+      <div class="nav-item"><span class="dot"></span>Data Sources<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Alerts<span class="badge">soon</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="headline">
+      <div>
+        <h1>The <em>forecast studio</em>.</h1>
+        <div class="sub">Move the levers. See what happens. This is the page that turns the dashboard from an observation tool into a planning instrument — a CFO can sit here and model "what if we cut TikTok 30%" before the budget conversation, not after.</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Scenario presets -->
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-header">
+        <div class="panel-title">Scenario presets <span class="accent">/ start from a named plan</span></div>
+        <div class="panel-meta">click to load · then customize below</div>
+      </div>
+      <div class="panel-body">
+        <div class="comp-grid">
+          <div class="comp-card active" onclick="loadPreset('base', this)">
+            <div class="comp-name">Base case</div>
+            <div class="comp-desc">Current trajectory — no new interventions, spend mix held at Q1'26 actuals, natural growth only.</div>
+            <div class="comp-metrics">
+              <div class="comp-metric-row"><span class="k">180d new subs</span><span class="v">+38.4k</span></div>
+              <div class="comp-metric-row"><span class="k">Net subs EoP</span><span class="v">52.1k</span></div>
+              <div class="comp-metric-row"><span class="k">Gross revenue</span><span class="v">$11.2M</span></div>
+              <div class="comp-metric-row"><span class="k">LTV:CAC</span><span class="v">4.2×</span></div>
+            </div>
+          </div>
+          <div class="comp-card" onclick="loadPreset('retention', this)">
+            <div class="comp-name">Retention-first</div>
+            <div class="comp-desc">Ship M1 habit nudge + variety pack default. Shift $180k from macro-influencer to SEO. Reduce TikTok spend 20%.</div>
+            <div class="comp-metrics">
+              <div class="comp-metric-row"><span class="k">180d new subs</span><span class="v">+34.8k</span></div>
+              <div class="comp-metric-row"><span class="k">Net subs EoP</span><span class="v">58.4k</span></div>
+              <div class="comp-metric-row"><span class="k">Gross revenue</span><span class="v">$12.6M</span></div>
+              <div class="comp-metric-row"><span class="k">LTV:CAC</span><span class="v">5.1×</span></div>
+            </div>
+          </div>
+          <div class="comp-card" onclick="loadPreset('growth', this)">
+            <div class="comp-name">Aggressive growth</div>
+            <div class="comp-desc">Increase all paid channels 40%. Launch limited-edition flavor. Annual plan push at M3. Accepts worse unit economics for scale.</div>
+            <div class="comp-metrics">
+              <div class="comp-metric-row"><span class="k">180d new subs</span><span class="v">+62.1k</span></div>
+              <div class="comp-metric-row"><span class="k">Net subs EoP</span><span class="v">64.2k</span></div>
+              <div class="comp-metric-row"><span class="k">Gross revenue</span><span class="v">$14.1M</span></div>
+              <div class="comp-metric-row"><span class="k">LTV:CAC</span><span class="v">3.1×</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Studio: controls + output -->
+    <div class="studio">
+      <!-- LEFT: controls -->
+      <div class="controls-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Spend levers <span class="accent">/ paid channels</span></div>
+            <div class="panel-meta">% vs baseline</div>
+          </div>
+          <div class="panel-body">
+            <div class="slider-group">
+              <div class="slider-head">
+                <span class="slider-label">TikTok / creator spend</span>
+                <span class="slider-value" id="v-tiktok">+0%</span>
+              </div>
+              <div class="slider-wrap">
+                <input type="range" id="s-tiktok" min="-50" max="100" value="0" oninput="update()">
+                <div class="slider-ticks"><span>−50%</span><span>0</span><span>+100%</span></div>
+              </div>
+              <div class="slider-hint">Baseline: $135k/mo · CAC $89 · M12 retention 58%</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-head">
+                <span class="slider-label">Meta / IG spend</span>
+                <span class="slider-value" id="v-meta">+0%</span>
+              </div>
+              <div class="slider-wrap">
+                <input type="range" id="s-meta" min="-50" max="100" value="0" oninput="update()">
+                <div class="slider-ticks"><span>−50%</span><span>0</span><span>+100%</span></div>
+              </div>
+              <div class="slider-hint">Baseline: $108k/mo · CAC $64 · M12 retention 62%</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-head">
+                <span class="slider-label">Paid search spend</span>
+                <span class="slider-value" id="v-search">+0%</span>
+              </div>
+              <div class="slider-wrap">
+                <input type="range" id="s-search" min="-50" max="100" value="0" oninput="update()">
+                <div class="slider-ticks"><span>−50%</span><span>0</span><span>+100%</span></div>
+              </div>
+              <div class="slider-hint">Baseline: $110k/mo · CAC $52 · M12 retention 68%</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-head">
+                <span class="slider-label">Macro-influencer spend</span>
+                <span class="slider-value" id="v-influencer">+0%</span>
+              </div>
+              <div class="slider-wrap">
+                <input type="range" id="s-influencer" min="-100" max="100" value="0" oninput="update()">
+                <div class="slider-ticks"><span>−100%</span><span>0</span><span>+100%</span></div>
+              </div>
+              <div class="slider-hint">Baseline: $61k/mo · CAC $142 · LTV:CAC 1.3× (unprofitable)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Retention levers <span class="accent">/ interventions</span></div>
+            <div class="panel-meta">tested in A/B</div>
+          </div>
+          <div class="panel-body tight" style="padding:6px 18px;">
+            <div class="toggle-row">
+              <div class="toggle-label">M1 habit nudge (SMS)<span class="sub">+4.8pp M2 retention</span></div>
+              <div class="toggle-switch" id="t-nudge" onclick="toggleOn(this, 'nudge')"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">Variety pack default<span class="sub">+3.1pp M2 retention</span></div>
+              <div class="toggle-switch" id="t-variety" onclick="toggleOn(this, 'variety')"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">M2 pause-not-cancel offer<span class="sub">+2.6pp M2 retention</span></div>
+              <div class="toggle-switch" id="t-pause" onclick="toggleOn(this, 'pause')"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">TikTok deep-onboarding<span class="sub">+5.2pp (TikTok cohort only)</span></div>
+              <div class="toggle-switch" id="t-tikon" onclick="toggleOn(this, 'tikon')"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">Annual plan push at M3<span class="sub">+12pp M12 · −$47 margin</span></div>
+              <div class="toggle-switch" id="t-annual" onclick="toggleOn(this, 'annual')"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Exogenous assumptions</div>
+            <div class="panel-meta">shocks</div>
+          </div>
+          <div class="panel-body">
+            <div class="slider-group">
+              <div class="slider-head">
+                <span class="slider-label">Category tailwind</span>
+                <span class="slider-value" id="v-category">+0%</span>
+              </div>
+              <div class="slider-wrap">
+                <input type="range" id="s-category" min="-20" max="30" value="0" oninput="update()">
+                <div class="slider-ticks"><span>−20%</span><span>0</span><span>+30%</span></div>
+              </div>
+              <div class="slider-hint">Growth or contraction of the greens-supplement category independent of Grüns action</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-head">
+                <span class="slider-label">Ingredient cost pressure</span>
+                <span class="slider-value" id="v-cogs">+0%</span>
+              </div>
+              <div class="slider-wrap">
+                <input type="range" id="s-cogs" min="-10" max="30" value="0" oninput="update()">
+                <div class="slider-ticks"><span>−10%</span><span>0</span><span>+30%</span></div>
+              </div>
+              <div class="slider-hint">Tariff, agricultural commodity, or shipping shock to COGS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: output -->
+      <div class="output-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">180-day forecast <span class="accent">/ live</span></div>
+            <div class="panel-meta" id="scenario-name">BASE CASE</div>
+          </div>
+          <div class="panel-body" style="padding-bottom:8px;">
+            <svg class="forecast-chart" id="chart" viewBox="0 0 700 320" preserveAspectRatio="none">
+              <!-- Grid -->
+              <g stroke="var(--border)" stroke-width="1" opacity="0.7">
+                <line x1="60" y1="30" x2="60" y2="270"/>
+                <line x1="60" y1="270" x2="680" y2="270"/>
+                <line x1="60" y1="210" x2="680" y2="210" stroke-dasharray="2,3"/>
+                <line x1="60" y1="150" x2="680" y2="150" stroke-dasharray="2,3"/>
+                <line x1="60" y1="90" x2="680" y2="90" stroke-dasharray="2,3"/>
+              </g>
+              <g font-family="JetBrains Mono" font-size="10" fill="var(--ink-faint)" text-anchor="end">
+                <text x="54" y="33">70k</text>
+                <text x="54" y="93">60k</text>
+                <text x="54" y="153">50k</text>
+                <text x="54" y="213">40k</text>
+                <text x="54" y="273">30k</text>
+              </g>
+              <g font-family="JetBrains Mono" font-size="10" fill="var(--ink-faint)" text-anchor="middle">
+                <text x="60" y="290">Now</text>
+                <text x="184" y="290">+30d</text>
+                <text x="308" y="290">+60d</text>
+                <text x="432" y="290">+90d</text>
+                <text x="556" y="290">+120d</text>
+                <text x="680" y="290">+180d</text>
+              </g>
+
+              <!-- Confidence band -->
+              <path id="band" fill="var(--accent)" opacity="0.1" d=""/>
+              <!-- Predicted line -->
+              <path id="pred" fill="none" stroke="var(--accent)" stroke-width="2.5" d=""/>
+              <!-- Baseline comparison (dashed, always base case) -->
+              <path id="baseline" fill="none" stroke="var(--ink-dim)" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.55" d=""/>
+
+              <!-- Legend -->
+              <g font-family="JetBrains Mono" font-size="10">
+                <line x1="450" y1="48" x2="470" y2="48" stroke="var(--accent)" stroke-width="2.5"/>
+                <text x="476" y="51" fill="var(--ink-dim)">current scenario</text>
+                <line x1="580" y1="48" x2="600" y2="48" stroke="var(--ink-dim)" stroke-width="1.5" stroke-dasharray="3,2"/>
+                <text x="606" y="51" fill="var(--ink-dim)">base case</text>
+              </g>
+              <g font-family="JetBrains Mono" font-size="10">
+                <rect x="450" y="58" width="20" height="5" fill="var(--accent)" opacity="0.15"/>
+                <text x="476" y="67" fill="var(--ink-dim)">P25/P75 band</text>
+              </g>
+            </svg>
+          </div>
+          <div class="hero-metrics">
+            <div class="hero-m">
+              <div class="hero-m-label">180d new subs</div>
+              <div class="hero-m-val num" id="m-newsubs">+38.4k</div>
+              <div class="hero-m-delta" id="m-newsubs-d">baseline</div>
+            </div>
+            <div class="hero-m">
+              <div class="hero-m-label">Net subs EoP</div>
+              <div class="hero-m-val num" id="m-netsubs">52.1k</div>
+              <div class="hero-m-delta" id="m-netsubs-d">baseline</div>
+            </div>
+            <div class="hero-m">
+              <div class="hero-m-label">Gross revenue</div>
+              <div class="hero-m-val num" id="m-rev">$11.2M</div>
+              <div class="hero-m-delta" id="m-rev-d">baseline</div>
+            </div>
+            <div class="hero-m">
+              <div class="hero-m-label">LTV:CAC</div>
+              <div class="hero-m-val num" id="m-ltv">4.2×</div>
+              <div class="hero-m-delta" id="m-ltv-d">baseline</div>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <span id="scenario-summary">No changes from base case. Adjust levers on the left to model interventions.</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Sensitivity analysis <span class="accent">/ which levers move the needle</span></div>
+            <div class="panel-meta">impact on 180d gross revenue, held at current scenario</div>
+          </div>
+          <div class="panel-body">
+            <div class="tornado">
+              <div class="tornado-row">
+                <span class="tornado-label">Category tailwind ±15%</span>
+                <div class="tornado-bar"><div class="mid"></div><div class="neg" style="width:28%;"></div><div class="pos" style="width:32%;"></div></div>
+                <span class="tornado-range">±$2.1M</span>
+              </div>
+              <div class="tornado-row">
+                <span class="tornado-label">M2 retention ±4pp</span>
+                <div class="tornado-bar"><div class="mid"></div><div class="neg" style="width:22%;"></div><div class="pos" style="width:25%;"></div></div>
+                <span class="tornado-range">±$1.6M</span>
+              </div>
+              <div class="tornado-row">
+                <span class="tornado-label">TikTok spend ±30%</span>
+                <div class="tornado-bar"><div class="mid"></div><div class="neg" style="width:16%;"></div><div class="pos" style="width:14%;"></div></div>
+                <span class="tornado-range">±$0.9M</span>
+              </div>
+              <div class="tornado-row">
+                <span class="tornado-label">Paid search ±30%</span>
+                <div class="tornado-bar"><div class="mid"></div><div class="neg" style="width:12%;"></div><div class="pos" style="width:13%;"></div></div>
+                <span class="tornado-range">±$0.8M</span>
+              </div>
+              <div class="tornado-row">
+                <span class="tornado-label">Meta spend ±30%</span>
+                <div class="tornado-bar"><div class="mid"></div><div class="neg" style="width:10%;"></div><div class="pos" style="width:10%;"></div></div>
+                <span class="tornado-range">±$0.6M</span>
+              </div>
+              <div class="tornado-row">
+                <span class="tornado-label">COGS pressure +10%</span>
+                <div class="tornado-bar"><div class="mid"></div><div class="neg" style="width:18%;"></div></div>
+                <span class="tornado-range">−$1.2M</span>
+              </div>
+              <div class="tornado-row">
+                <span class="tornado-label">Macro-influencer ±50%</span>
+                <div class="tornado-bar"><div class="mid"></div><div class="neg" style="width:4%;"></div><div class="pos" style="width:3%;"></div></div>
+                <span class="tornado-range">±$0.2M</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <span>Category tailwind (exogenous) and M2 retention (endogenous) are the two highest-leverage variables · spend levers matter less than the quality of cohorts they produce</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footnote">
+      <span>Forecast Studio v2.4.1 · model fits across 36mo · deterministic within current session · retention assumptions linked to Retention Room A/B data</span>
+      <span>illustrative · assumptions versioned</span>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// === Forecast model (simplified but directionally correct) ===
+// Baseline assumptions
+const BASE = {
+  newSubs180d: 38400,       // net new subs over 180 days
+  netSubsEoP: 52100,        // total active subs at period end
+  revenue180d: 11200000,    // $ gross revenue
+  ltvCac: 4.2,
+  tiktokSpend: 135000,
+  metaSpend: 108000,
+  searchSpend: 110000,
+  influencerSpend: 61000,
+  cacByChannel: { tiktok: 89, meta: 64, search: 52, influencer: 142 },
+  retentionM12ByChannel: { tiktok: 0.58, meta: 0.62, search: 0.68, influencer: 0.49 },
+  ltvByChannel: { tiktok: 213, meta: 241, search: 298, influencer: 178 }
+};
+
+const state = {
+  tiktok: 0, meta: 0, search: 0, influencer: 0,
+  category: 0, cogs: 0,
+  nudge: false, variety: false, pause: false, tikon: false, annual: false
+};
+
+function computeScenario() {
+  // Channel spend adjusted
+  const tiktokMult = 1 + state.tiktok/100;
+  const metaMult = 1 + state.meta/100;
+  const searchMult = 1 + state.search/100;
+  const influencerMult = 1 + state.influencer/100;
+
+  // New subs by channel (spend / CAC, with diminishing returns at extremes)
+  function diminish(mult) {
+    if (mult <= 1) return mult;
+    return 1 + (mult - 1) * (1 - (mult - 1) * 0.12);  // marginal CAC rises with spend
+  }
+  const subsTT = (BASE.tiktokSpend * diminish(tiktokMult)) / BASE.cacByChannel.tiktok * 6;
+  const subsMeta = (BASE.metaSpend * diminish(metaMult)) / BASE.cacByChannel.meta * 6;
+  const subsSearch = (BASE.searchSpend * diminish(searchMult)) / BASE.cacByChannel.search * 6;
+  const subsInf = (BASE.influencerSpend * diminish(influencerMult)) / BASE.cacByChannel.influencer * 6;
+  const subsOrganic = 1840 * 6;
+  const subsReferral = 720 * 6;
+  const subsAffiliate = 380 * 6;
+
+  let newSubsTotal = subsTT + subsMeta + subsSearch + subsInf + subsOrganic + subsReferral + subsAffiliate;
+  newSubsTotal *= (1 + state.category/100);
+
+  // Retention lift from interventions (applies to M2 → reduces early churn → bumps net subs)
+  let retentionLift = 0;
+  if (state.nudge) retentionLift += 0.048;
+  if (state.variety) retentionLift += 0.031;
+  if (state.pause) retentionLift += 0.026;
+  if (state.tikon) retentionLift += 0.013;  // weighted by tiktok share
+  const m2RetBase = 0.74;
+  const m2Ret = Math.min(0.92, m2RetBase + retentionLift);
+
+  // Net subs EoP = starting subs + new - churn
+  const startingSubs = 42000;
+  const churnRate = 1 - m2Ret;  // simplified as half-year cumulative churn fraction
+  const netSubs = startingSubs + newSubsTotal - (startingSubs + newSubsTotal * 0.5) * churnRate;
+
+  // Revenue = average rev per sub * weighted active sub-months
+  const arpsPerMonth = 72;
+  const avgActiveSubs = (startingSubs + netSubs) / 2;
+  let revenue = avgActiveSubs * arpsPerMonth * 6;
+
+  // Annual plan push slightly reduces ARPS but extends duration
+  if (state.annual) revenue *= 1.04;
+  // COGS pressure reduces gross but NOT revenue — we're reporting gross revenue here
+  // (effect shows up in LTV:CAC via margin compression)
+
+  // LTV:CAC — compute weighted
+  const totalSpend = BASE.tiktokSpend*tiktokMult + BASE.metaSpend*metaMult + BASE.searchSpend*searchMult + BASE.influencerSpend*influencerMult;
+  const paidSubs = subsTT + subsMeta + subsSearch + subsInf;
+  const blendedCAC = paidSubs > 0 ? (totalSpend * 6) / paidSubs : BASE.cacByChannel.meta;
+  const cacBlended = (blendedCAC * paidSubs + 18 * subsOrganic + 24 * subsReferral + 41 * subsAffiliate) / newSubsTotal;
+
+  // LTV lift from retention interventions
+  let ltvLift = 0;
+  if (state.nudge) ltvLift += 21;
+  if (state.variety) ltvLift += 14;
+  if (state.pause) ltvLift += 12;
+  if (state.tikon) ltvLift += 6;  // weighted
+  if (state.annual) ltvLift += 38 - 47;  // net impact
+  const ltvBase = 287;
+  const ltvBlended = ltvBase + ltvLift;
+
+  // COGS pressure reduces LTV (margin compression)
+  const ltvAfterCogs = ltvBlended * (1 - state.cogs/100 * 0.55);  // 55% of COGS is variable
+
+  const ltvCac = ltvAfterCogs / cacBlended;
+
+  return {
+    newSubs180d: newSubsTotal,
+    netSubsEoP: netSubs,
+    revenue180d: revenue,
+    ltvCac: ltvCac,
+    m2Retention: m2Ret
+  };
+}
+
+// === Rendering ===
+function formatK(n) {
+  if (Math.abs(n) >= 1000) return (n/1000).toFixed(1) + 'k';
+  return Math.round(n).toLocaleString();
+}
+function formatMoney(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  return '$' + Math.round(n/1000) + 'k';
+}
+function signed(n, suffix = '') {
+  const s = n >= 0 ? '+' : '';
+  return s + n.toFixed(1) + suffix;
+}
+
+function update() {
+  // Read slider values
+  state.tiktok = +document.getElementById('s-tiktok').value;
+  state.meta = +document.getElementById('s-meta').value;
+  state.search = +document.getElementById('s-search').value;
+  state.influencer = +document.getElementById('s-influencer').value;
+  state.category = +document.getElementById('s-category').value;
+  state.cogs = +document.getElementById('s-cogs').value;
+
+  // Render slider values
+  ['tiktok','meta','search','influencer','category','cogs'].forEach(k => {
+    const el = document.getElementById('v-' + k);
+    const val = state[k];
+    el.textContent = (val >= 0 ? '+' : '') + val + '%';
+    el.classList.toggle('neg', val < 0);
+  });
+
+  const r = computeScenario();
+
+  // Hero metrics
+  document.getElementById('m-newsubs').textContent = '+' + formatK(r.newSubs180d);
+  document.getElementById('m-netsubs').textContent = formatK(r.netSubsEoP);
+  document.getElementById('m-rev').textContent = formatMoney(r.revenue180d);
+  document.getElementById('m-ltv').textContent = r.ltvCac.toFixed(1) + '×';
+
+  // Deltas vs base
+  function setDelta(id, cur, base, fmt, suffix='') {
+    const el = document.getElementById(id);
+    const d = cur - base;
+    const pct = (d/base)*100;
+    if (Math.abs(pct) < 0.5) { el.textContent = 'baseline'; el.className = 'hero-m-delta'; }
+    else {
+      el.textContent = (d > 0 ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(1) + '% vs base';
+      el.className = 'hero-m-delta ' + (d > 0 ? 'up' : 'down');
+    }
+  }
+  setDelta('m-newsubs-d', r.newSubs180d, BASE.newSubs180d);
+  setDelta('m-netsubs-d', r.netSubsEoP, BASE.netSubsEoP);
+  setDelta('m-rev-d', r.revenue180d, BASE.revenue180d);
+  const ltvDelta = r.ltvCac - BASE.ltvCac;
+  const ltvEl = document.getElementById('m-ltv-d');
+  if (Math.abs(ltvDelta) < 0.05) { ltvEl.textContent = 'baseline'; ltvEl.className = 'hero-m-delta'; }
+  else {
+    ltvEl.textContent = (ltvDelta > 0 ? '▲ ' : '▼ ') + Math.abs(ltvDelta).toFixed(1) + '× vs base';
+    ltvEl.className = 'hero-m-delta ' + (ltvDelta > 0 ? 'up' : 'down');
+  }
+
+  // LTV:CAC color
+  const ltvVal = document.getElementById('m-ltv');
+  ltvVal.classList.remove('warn','neg');
+  if (r.ltvCac < 3.0) ltvVal.classList.add('neg');
+  else if (r.ltvCac < 3.5) ltvVal.classList.add('warn');
+
+  // Chart paths
+  drawChart(r);
+
+  // Scenario summary
+  updateSummary(r);
+}
+
+function drawChart(r) {
+  // X: 0 (now) to 180 days; map to 60..680 px
+  // Y: subs count; map 30k..70k to 270..30 px
+  const xMap = d => 60 + (d/180) * 620;
+  const yMap = v => 270 - ((v - 30000)/40000) * 240;
+
+  // Baseline trajectory: smooth curve from 42k current to 52.1k at 180d
+  const basePts = [];
+  for (let d = 0; d <= 180; d += 10) {
+    const frac = d/180;
+    const v = 42000 + (BASE.netSubsEoP - 42000) * (1 - Math.exp(-frac * 2.2));
+    basePts.push([xMap(d), yMap(v)]);
+  }
+  document.getElementById('baseline').setAttribute('d',
+    'M ' + basePts.map(p => p[0] + ' ' + p[1]).join(' L '));
+
+  // Current scenario trajectory
+  const curPts = [];
+  for (let d = 0; d <= 180; d += 10) {
+    const frac = d/180;
+    const v = 42000 + (r.netSubsEoP - 42000) * (1 - Math.exp(-frac * 2.2));
+    curPts.push([xMap(d), yMap(v)]);
+  }
+  document.getElementById('pred').setAttribute('d',
+    'M ' + curPts.map(p => p[0] + ' ' + p[1]).join(' L '));
+
+  // Confidence band (±10% on y, widens over time)
+  const upper = [], lower = [];
+  for (let d = 0; d <= 180; d += 10) {
+    const frac = d/180;
+    const v = 42000 + (r.netSubsEoP - 42000) * (1 - Math.exp(-frac * 2.2));
+    const band = v * 0.03 * (0.3 + frac);
+    upper.push([xMap(d), yMap(v + band)]);
+    lower.push([xMap(d), yMap(v - band)]);
+  }
+  const bandPath = 'M ' + upper.map(p => p[0] + ' ' + p[1]).join(' L ') +
+                   ' L ' + lower.reverse().map(p => p[0] + ' ' + p[1]).join(' L ') + ' Z';
+  document.getElementById('band').setAttribute('d', bandPath);
+}
+
+function updateSummary(r) {
+  const changes = [];
+  if (state.tiktok !== 0) changes.push('TikTok ' + (state.tiktok>0?'+':'') + state.tiktok + '%');
+  if (state.meta !== 0) changes.push('Meta ' + (state.meta>0?'+':'') + state.meta + '%');
+  if (state.search !== 0) changes.push('Search ' + (state.search>0?'+':'') + state.search + '%');
+  if (state.influencer !== 0) changes.push('Influencer ' + (state.influencer>0?'+':'') + state.influencer + '%');
+  if (state.category !== 0) changes.push('Category ' + (state.category>0?'+':'') + state.category + '%');
+  if (state.cogs !== 0) changes.push('COGS +' + state.cogs + '%');
+  const interventions = [];
+  if (state.nudge) interventions.push('M1 nudge');
+  if (state.variety) interventions.push('variety default');
+  if (state.pause) interventions.push('M2 pause offer');
+  if (state.tikon) interventions.push('TikTok onboarding');
+  if (state.annual) interventions.push('annual push');
+
+  let summary = '';
+  if (changes.length === 0 && interventions.length === 0) {
+    summary = 'No changes from base case. Adjust levers on the left to model interventions.';
+  } else {
+    summary = 'Active levers: ';
+    if (changes.length > 0) summary += changes.join(' · ');
+    if (interventions.length > 0) summary += (changes.length > 0 ? ' · interventions: ' : 'interventions: ') + interventions.join(', ');
+    summary += '. ';
+    const revDelta = ((r.revenue180d - BASE.revenue180d) / BASE.revenue180d * 100);
+    if (Math.abs(revDelta) > 0.5) {
+      summary += 'Net revenue impact ' + (revDelta>0?'+':'') + revDelta.toFixed(1) + '% vs base.';
+    }
+  }
+  document.getElementById('scenario-summary').textContent = summary;
+}
+
+function toggleOn(el, key) {
+  el.classList.toggle('on');
+  state[key] = el.classList.contains('on');
+  update();
+}
+
+function loadPreset(name, card) {
+  document.querySelectorAll('.comp-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  document.getElementById('scenario-name').textContent = name.toUpperCase().replace(/-/g,' ') + ' SCENARIO';
+
+  // Reset sliders first
+  resetSliders();
+  resetToggles();
+
+  if (name === 'base') {
+    // Nothing to do
+  } else if (name === 'retention') {
+    document.getElementById('s-tiktok').value = -20;
+    document.getElementById('s-influencer').value = -100;
+    document.getElementById('s-search').value = 15;
+    setToggle('nudge', true);
+    setToggle('variety', true);
+    setToggle('tikon', true);
+  } else if (name === 'growth') {
+    document.getElementById('s-tiktok').value = 40;
+    document.getElementById('s-meta').value = 40;
+    document.getElementById('s-search').value = 40;
+    document.getElementById('s-influencer').value = 40;
+    setToggle('annual', true);
+  }
+  update();
+}
+
+function setToggle(key, on) {
+  const el = document.getElementById('t-' + key);
+  if (on) el.classList.add('on'); else el.classList.remove('on');
+  state[key] = on;
+}
+
+function resetSliders() {
+  ['s-tiktok','s-meta','s-search','s-influencer','s-category','s-cogs'].forEach(id => {
+    document.getElementById(id).value = 0;
+  });
+}
+function resetToggles() {
+  ['nudge','variety','pause','tikon','annual'].forEach(k => setToggle(k, false));
+}
+
+function resetAll() {
+  resetSliders();
+  resetToggles();
+  document.querySelectorAll('.comp-card').forEach(c => c.classList.remove('active'));
+  document.querySelector('.comp-card').classList.add('active');
+  document.getElementById('scenario-name').textContent = 'BASE CASE';
+  update();
+}
+
+// Initial render
+update();
+</script>
+</body>
+</html>
