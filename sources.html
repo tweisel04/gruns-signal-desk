@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Grüns — Data Sources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E0F0B;
+    --bg-elev: #15170F;
+    --bg-card: #1A1D14;
+    --border: #2A2E22;
+    --border-strong: #3A3F30;
+    --ink: #E8E6DC;
+    --ink-dim: #9A9B8C;
+    --ink-faint: #5F6354;
+    --accent: #B8D666;
+    --accent-dim: #7A9142;
+    --accent-deep: #3D4D20;
+    --warn: #D4A24C;
+    --danger: #C95A4B;
+    --info: #7BA3B8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num, .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+  a { color: inherit; text-decoration: none; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    background: var(--bg-elev); position: sticky; top: 0; z-index: 50;
+  }
+  .brand { display: flex; align-items: baseline; gap: 14px; }
+  .brand-mark {
+    font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .brand-mark .u { color: var(--accent); font-style: italic; }
+  .brand-divider { color: var(--ink-faint); font-size: 11px; }
+  .brand-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-dim);
+  }
+  .topbar-right {
+    display: flex; align-items: center; gap: 20px; font-size: 11px;
+    color: var(--ink-dim); font-family: 'JetBrains Mono', monospace;
+  }
+  .back-link {
+    color: var(--accent); padding: 3px 8px; border: 1px solid var(--accent-dim);
+    border-radius: 3px; font-size: 10px;
+  }
+
+  .shell {
+    display: grid; grid-template-columns: 200px 1fr;
+    min-height: calc(100vh - 52px);
+  }
+  .sidebar {
+    border-right: 1px solid var(--border); padding: 24px 0;
+    background: var(--bg-elev);
+  }
+  .nav-group { margin-bottom: 28px; }
+  .nav-label {
+    padding: 0 20px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 20px; cursor: pointer;
+    color: var(--ink-dim); font-size: 12.5px;
+    border-left: 2px solid transparent; transition: all 0.15s;
+  }
+  .nav-item:hover { color: var(--ink); background: rgba(184,214,102,0.03); }
+  .nav-item.active {
+    color: var(--accent); border-left-color: var(--accent);
+    background: linear-gradient(90deg, rgba(184,214,102,0.08), transparent);
+  }
+  .nav-item .dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+  .nav-item .badge { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 2px; background: var(--border); color: var(--ink-faint); letter-spacing: 0.05em; }
+
+  .main { padding: 28px 32px 60px; max-width: 1600px; }
+  .headline {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .headline h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px; font-weight: 400; letter-spacing: -0.02em;
+  }
+  .headline h1 em { color: var(--accent); font-style: italic; }
+  .headline .sub {
+    font-size: 12px; color: var(--ink-dim); margin-top:6px; max-width: 720px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 20px 0 24px; }
+
+  /* Stack summary */
+  .summary-strip {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .summary-cell {
+    background: var(--bg-card); padding: 18px 20px;
+  }
+  .summary-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 10px;
+  }
+  .summary-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px; font-weight: 500;
+    color: var(--ink); line-height: 1; margin-bottom: 6px;
+  }
+  .summary-value.accent { color: var(--accent); }
+  .summary-value .unit { font-size: 13px; color: var(--ink-dim); }
+  .summary-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; color: var(--ink-faint);
+  }
+
+  /* Panel */
+  .panel {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 12px; border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .panel-title .accent { color: var(--accent); }
+  .panel-meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-dim); letter-spacing: 0.08em;
+  }
+  .panel-body { padding: 18px; }
+  .panel-body.tight { padding: 0; }
+  .panel-footer {
+    padding: 10px 18px; border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-faint);
+    display: flex; justify-content: space-between;
+  }
+
+  /* Source card */
+  .source-card {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .source-card:last-child { border-bottom: none; }
+  .source-card:hover { background: rgba(184,214,102,0.015); }
+
+  .source-meta {
+    padding: 22px 22px;
+    background: rgba(14,15,11,0.3);
+    border-right: 1px solid var(--border);
+  }
+  .source-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 22px; font-weight: 500;
+    color: var(--ink); margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .source-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 16px;
+  }
+  .source-stat {
+    display: flex; justify-content: space-between;
+    padding: 6px 0; font-size: 11px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .source-stat:last-child { border-bottom: none; }
+  .source-stat .k { color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .source-stat .v { color: var(--ink); font-family: 'JetBrains Mono', monospace; }
+  .source-stat .v.ok { color: var(--accent); }
+  .source-stat .v.warn { color: var(--warn); }
+
+  .source-body { padding: 22px 26px; }
+  .source-title {
+    font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500;
+    color: var(--ink); margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .source-tag {
+    display: inline-block; margin-left: 10px; padding: 2px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+    border-radius: 2px; vertical-align: middle;
+  }
+  .source-tag.critical { background: var(--accent-deep); color: var(--accent); }
+  .source-tag.supporting { background: rgba(123,163,184,0.15); color: var(--info); }
+  .source-tag.warn { background: rgba(212,162,76,0.15); color: var(--warn); }
+  .source-desc {
+    font-size: 12.5px; color: var(--ink-dim); line-height: 1.65;
+    margin: 10px 0 16px;
+  }
+
+  .source-section {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+  .source-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 8px;
+  }
+  .source-section-body {
+    font-size: 11.5px; color: var(--ink-dim); line-height: 1.65;
+  }
+  .source-section-body strong { color: var(--ink); font-weight: 500; }
+
+  .metric-chip {
+    display: inline-block;
+    padding: 3px 9px; margin: 3px 4px 3px 0;
+    background: var(--bg-elev); border: 1px solid var(--border-strong);
+    border-radius: 12px; font-size: 11px;
+    color: var(--ink); font-family: 'Inter Tight', sans-serif;
+  }
+  .metric-chip .src-page {
+    color: var(--ink-faint); font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; margin-left: 6px;
+  }
+
+  .limitation-item {
+    padding: 8px 0;
+    display: grid; grid-template-columns: 16px 1fr;
+    gap: 10px;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+  }
+  .limitation-item::before {
+    content: '–'; color: var(--warn); font-family: 'JetBrains Mono', monospace;
+  }
+  .limitation-item strong { color: var(--ink); font-weight: 500; }
+
+  /* Lineage map */
+  .lineage-table {
+    width: 100%; border-collapse: collapse;
+  }
+  .lineage-table th {
+    text-align: left; font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--ink-faint); padding: 10px 16px;
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+  .lineage-table td {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 12px; vertical-align: middle;
+  }
+  .lineage-table tr:last-child td { border-bottom: none; }
+  .lineage-table tr:hover td { background: rgba(184,214,102,0.02); }
+  .lineage-metric { color: var(--ink); font-weight: 500; }
+  .lineage-metric .page {
+    display: block; font-size: 10px; color: var(--ink-faint);
+    font-family: 'JetBrains Mono', monospace; font-weight: normal;
+    margin-top: 2px; letter-spacing: 0.05em;
+  }
+  .lineage-source { color: var(--ink-dim); font-size: 11.5px; }
+  .lineage-source strong { color: var(--ink); font-weight: 500; }
+  .lineage-transform {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    color: var(--ink-faint);
+  }
+  .lineage-method {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 2px 6px; border-radius: 2px;
+    background: var(--bg-elev); color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  /* Stack diagram */
+  .stack-viz {
+    padding: 10px 0 6px;
+  }
+  .stack-layer {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .stack-layer:last-child { border-bottom: none; }
+  .stack-layer-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .stack-layer-pills {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .stack-pill {
+    padding: 4px 10px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-strong);
+    border-radius: 2px; font-size: 11px;
+    color: var(--ink); display: inline-flex; align-items: center; gap: 6px;
+  }
+  .stack-pill::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .stack-pill.supporting::before { background: var(--info); }
+  .stack-pill.first-party::before { background: var(--accent); box-shadow: 0 0 6px var(--accent-dim); }
+
+  .footnote {
+    margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--ink-faint);
+  }
+
+  @media (max-width: 1200px) {
+    .summary-strip { grid-template-columns: repeat(2, 1fr); }
+    .source-card { grid-template-columns: 1fr; }
+    .source-meta { border-right: none; border-bottom: 1px solid var(--border); }
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">gr<span class="u">ü</span>ns / Signal Desk</div>
+    <span class="brand-divider">·</span>
+    <span class="brand-sub">Data Sources · Provenance & Lineage</span>
+  </div>
+  <div class="topbar-right">
+    <a href="index.html" class="back-link">← Signal Desk</a>
+    <span>7 sources · 4 critical</span>
+    <span>All SLAs green</span>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <a href="index.html"><div class="nav-item"><span class="dot"></span>Signal Desk</div></a>
+      <a href="retention.html"><div class="nav-item"><span class="dot"></span>Retention Room</div></a>
+      <a href="forecast.html"><div class="nav-item"><span class="dot"></span>Forecast Studio</div></a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Signals</div>
+      <div class="nav-item"><span class="dot"></span>Social Velocity<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Search Intent<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Panel Survey<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Review Corpus<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Competitor Set<span class="badge">soon</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Product</div>
+      <div class="nav-item"><span class="dot"></span>SKU Heatmap<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Flavor Telemetry<span class="badge">soon</span></div>
+      <div class="nav-item"><span class="dot"></span>Ingredient Lens<span class="badge">soon</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Admin</div>
+      <a href="integrity.html"><div class="nav-item"><span class="dot"></span>Data Integrity</div></a>
+      <div class="nav-item active"><span class="dot"></span>Data Sources</div>
+      <div class="nav-item"><span class="dot"></span>Alerts<span class="badge">soon</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="headline">
+      <div>
+        <h1>Data <em>sources</em> & provenance.</h1>
+        <div class="sub">Every number on the Signal Desk traces back to a named source, a defined method, and a monitored pipeline. This page documents the stack end-to-end: what we pay for, what we build, what refreshes when, and what happens if any single source breaks. A finance team should be able to answer the question "where did this number come from" in one click.</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Stack summary -->
+    <div class="summary-strip">
+      <div class="summary-cell">
+        <div class="summary-label">Active sources</div>
+        <div class="summary-value accent num">7</div>
+        <div class="summary-note">4 critical · 3 supporting</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Annual data spend</div>
+        <div class="summary-value num">~$142<span class="unit">k</span></div>
+        <div class="summary-note">vendor contracts only</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">First-party share</div>
+        <div class="summary-value num">38<span class="unit">%</span></div>
+        <div class="summary-note">of Signal Desk inputs</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Signals / source ratio</div>
+        <div class="summary-value num">2.3<span class="unit">×</span></div>
+        <div class="summary-note">cross-validated signals</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Single points of failure</div>
+        <div class="summary-value num" style="color:var(--warn);">1</div>
+        <div class="summary-note">panel vendor · mitigation below</div>
+      </div>
+    </div>
+
+    <!-- Stack diagram -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">The research stack <span class="accent">/ what generates every number</span></div>
+        <div class="panel-meta">layered by data origin</div>
+      </div>
+      <div class="panel-body">
+        <div class="stack-viz">
+          <div class="stack-layer">
+            <div class="stack-layer-name">First-party</div>
+            <div class="stack-layer-pills">
+              <span class="stack-pill first-party">Subscription CDP (internal)</span>
+              <span class="stack-pill first-party">Cancel-flow exit survey</span>
+              <span class="stack-pill first-party">Onboarding event stream</span>
+            </div>
+          </div>
+          <div class="stack-layer">
+            <div class="stack-layer-name">Commissioned</div>
+            <div class="stack-layer-pills">
+              <span class="stack-pill">Dynata longitudinal panel</span>
+            </div>
+          </div>
+          <div class="stack-layer">
+            <div class="stack-layer-name">Vendor APIs</div>
+            <div class="stack-layer-pills">
+              <span class="stack-pill">Sprinklr (social listening)</span>
+              <span class="stack-pill supporting">Brandwatch (cross-val)</span>
+              <span class="stack-pill">Google Trends</span>
+            </div>
+          </div>
+          <div class="stack-layer">
+            <div class="stack-layer-name">Public scrape</div>
+            <div class="stack-layer-pills">
+              <span class="stack-pill supporting">Trustpilot reviews</span>
+              <span class="stack-pill supporting">Amazon reviews (via vendor)</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--ink-dim);line-height:1.6;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">First-party data (38% of inputs) is the most defensible — no vendor can take it away, no scraping policy can shut it off. The Dynata panel is the single largest vendor line item and the one genuine single-point-of-failure in the stack; we maintain a second-source option with Cint for business continuity. Social listening is dual-sourced (Sprinklr + Brandwatch) for precisely this reason — Sprinklr is the primary read, Brandwatch catches what it misses.</p>
+      </div>
+      <div class="panel-footer">
+        <span>Each layer has different cost, latency, and ownership characteristics — the stack is deliberately diversified</span>
+        <span>refresh · weekly audit · quarterly contract review</span>
+      </div>
+    </div>
+
+    <!-- Source detail cards -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Source detail <span class="accent">/ provenance per vendor</span></div>
+        <div class="panel-meta">click-through from integrity page</div>
+      </div>
+      <div class="panel-body tight">
+
+        <!-- Sprinklr -->
+        <div class="source-card">
+          <div class="source-meta">
+            <div class="source-logo">Sprinklr</div>
+            <div class="source-type">Vendor · Social listening</div>
+            <div class="source-stat"><span class="k">Contract</span><span class="v">Enterprise tier</span></div>
+            <div class="source-stat"><span class="k">Annual cost</span><span class="v">$54k</span></div>
+            <div class="source-stat"><span class="k">Cadence</span><span class="v">5-min</span></div>
+            <div class="source-stat"><span class="k">SLA</span><span class="v ok">99.4% · GREEN</span></div>
+            <div class="source-stat"><span class="k">Renewal</span><span class="v">Sep 2026</span></div>
+          </div>
+          <div class="source-body">
+            <div class="source-title">Social listening · primary<span class="source-tag critical">CRITICAL</span></div>
+            <div class="source-desc">Unified mention stream across TikTok, Instagram, Reddit, X, YouTube comments. Brand and competitor tracking with topic classifiers for ingredient mentions, health claims, price discourse, and comparison threads. The single largest input to the Social Velocity and Share-of-Voice metrics.</div>
+
+            <div class="source-section">
+              <div class="source-section-label">Feeds these Signal Desk metrics</div>
+              <div>
+                <span class="metric-chip">Social Velocity <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Share of Voice <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Live signal feed <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Social velocity (feature) <span class="src-page">/ Forecast model</span></span>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Method</div>
+              <div class="source-section-body">Keyword queries (<strong>grüns, gruns greens, grüns gummies</strong>) plus competitor keyword sets ingested every 5 minutes via Sprinklr API. Sentiment classifier is Sprinklr's proprietary model, validated monthly against a hand-labeled internal test set (see Integrity page confusion matrix — 94% precision). Creator-weighted reach calculated using Sprinklr's follower counts and engagement rate, stripped of bot traffic.</div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Known limitations</div>
+              <div>
+                <div class="limitation-item"><span><strong>Platform coverage gaps.</strong> Sprinklr's TikTok integration is comment-and-post level, not Duet/Stitch-aware — viral remixes of our content may undercount.</span></div>
+                <div class="limitation-item"><span><strong>Regional bias.</strong> Heavily US-English weighted. German-language mentions containing "grüns" (meaning "greens") need a language filter that lives in our pipeline, not theirs.</span></div>
+                <div class="limitation-item"><span><strong>Sentiment model drift.</strong> Retrained by Sprinklr quarterly without notifying customers — we re-run our validation monthly to catch shifts.</span></div>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Cross-validation / backup</div>
+              <div class="source-section-body">Brandwatch runs parallel ingestion on the same keywords — used weekly to spot Sprinklr blind spots. In a full Sprinklr outage, Brandwatch can carry the Signal Desk alone for up to 30 days with degraded but adequate signal quality (lower recall, higher latency).</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brandwatch -->
+        <div class="source-card">
+          <div class="source-meta">
+            <div class="source-logo">Brandwatch</div>
+            <div class="source-type">Vendor · Cross-validation</div>
+            <div class="source-stat"><span class="k">Contract</span><span class="v">Standard tier</span></div>
+            <div class="source-stat"><span class="k">Annual cost</span><span class="v">$18k</span></div>
+            <div class="source-stat"><span class="k">Cadence</span><span class="v">15-min</span></div>
+            <div class="source-stat"><span class="k">SLA</span><span class="v ok">99.1% · GREEN</span></div>
+            <div class="source-stat"><span class="k">Renewal</span><span class="v">Mar 2027</span></div>
+          </div>
+          <div class="source-body">
+            <div class="source-title">Social listening · secondary<span class="source-tag supporting">SUPPORTING</span></div>
+            <div class="source-desc">Parallel listening pipeline on the same queries as Sprinklr. Not used as a primary input to any metric — exists specifically to cross-check Sprinklr and to serve as a failover if the primary feed degrades. The ratio of Brandwatch-only mentions to dual-detected mentions is itself a proxy for Sprinklr's recall health.</div>
+
+            <div class="source-section">
+              <div class="source-section-label">Feeds these Signal Desk metrics</div>
+              <div>
+                <span class="metric-chip">Listening recall audit <span class="src-page">/ Integrity</span></span>
+                <span class="metric-chip">Source reliability score <span class="src-page">/ Integrity</span></span>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Method</div>
+              <div class="source-section-body">Same keyword set as Sprinklr, ingested via Brandwatch Consumer Research API. Refreshed every 15 minutes (vs 5-min Sprinklr) — adequate for cross-validation, not adequate to replace Sprinklr for live feed.</div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Why we pay for two</div>
+              <div class="source-section-body">Single-vendor social listening is a known risk — different platforms grant different vendors different levels of access, and platform policy changes (TikTok in 2024, X in 2023) can cut off a vendor overnight. $18k/yr for dual-sourcing this input is cheap insurance on metrics that drive marketing decisions 10-100× that.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google Trends -->
+        <div class="source-card">
+          <div class="source-meta">
+            <div class="source-logo">Google Trends</div>
+            <div class="source-type">Vendor · Search intent</div>
+            <div class="source-stat"><span class="k">Contract</span><span class="v">Free API + SerpApi</span></div>
+            <div class="source-stat"><span class="k">Annual cost</span><span class="v">$1.4k</span></div>
+            <div class="source-stat"><span class="k">Cadence</span><span class="v">hourly</span></div>
+            <div class="source-stat"><span class="k">SLA</span><span class="v ok">99.8% · GREEN</span></div>
+            <div class="source-stat"><span class="k">Renewal</span><span class="v">month-to-month</span></div>
+          </div>
+          <div class="source-body">
+            <div class="source-title">Search intent signals<span class="source-tag critical">CRITICAL</span></div>
+            <div class="source-desc">Query volume indices for branded, comparative, and cancel-intent search terms. The cancel-intent sub-index is the leading indicator that fires in the Signal Desk alert banner — it reliably precedes actual subscription churn by 14-21 days.</div>
+
+            <div class="source-section">
+              <div class="source-section-label">Feeds these Signal Desk metrics</div>
+              <div>
+                <span class="metric-chip">Search Intent Index <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Cancel-intent alert <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Branded search (feature) <span class="src-page">/ Forecast model</span></span>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Method</div>
+              <div class="source-section-body">Weighted basket of four query categories: branded (50%), comparative like "grüns vs ag1" (25%), purchase-intent (15%), cancel-intent (10%, inverse-weighted). Accessed via SerpApi for structured returns, with a 5-query rolling median to stabilize Trends' non-deterministic sampling.</div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Known limitations</div>
+              <div>
+                <div class="limitation-item"><span><strong>Sampling variance.</strong> The same query run twice can return slightly different indices — Trends samples, it doesn't aggregate. Our 5-query median smooths this, but changes below ±8% are within noise.</span></div>
+                <div class="limitation-item"><span><strong>Relative indexing only.</strong> Trends doesn't give absolute volumes — everything is normalized to 0-100 within the query window. Makes it hard to say "search volume doubled in absolute terms."</span></div>
+                <div class="limitation-item"><span><strong>Low-volume queries.</strong> If "pause grüns" has insufficient volume in any given week, Trends returns zero. We maintain a floor of 30-day rolling volume to avoid spurious-zero noise.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynata Panel -->
+        <div class="source-card">
+          <div class="source-meta">
+            <div class="source-logo">Dynata</div>
+            <div class="source-type">Vendor · Consumer panel</div>
+            <div class="source-stat"><span class="k">Contract</span><span class="v">Panel-as-a-service</span></div>
+            <div class="source-stat"><span class="k">Annual cost</span><span class="v">$48k</span></div>
+            <div class="source-stat"><span class="k">Cadence</span><span class="v">monthly wave</span></div>
+            <div class="source-stat"><span class="k">SLA</span><span class="v ok">99.9% · GREEN</span></div>
+            <div class="source-stat"><span class="k">Renewal</span><span class="v">Jan 2027</span></div>
+          </div>
+          <div class="source-body">
+            <div class="source-title">Longitudinal consumer panel (n=512)<span class="source-tag critical">CRITICAL</span></div>
+            <div class="source-desc">The differentiator of the research stack. Recurring monthly survey of the same 512 consumers, stratified against US census on age, income, region, and dietary identity. Waves 1-14 completed. Longitudinal design — tracking change in the same individuals — is what makes sentiment drift detectable at small effect sizes.</div>
+
+            <div class="source-section">
+              <div class="source-section-label">Feeds these Signal Desk metrics</div>
+              <div>
+                <span class="metric-chip">Panel NPS <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Composite sentiment gauge <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Taste / Efficacy / Value / Trust scores <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Substitution map <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Panel purchase intent (feature) <span class="src-page">/ Forecast model</span></span>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Panel design</div>
+              <div class="source-section-body">Screener blinded to brand names during recruitment to avoid Grüns-favorable selection. Post-stratification raking used to correct minor census drift. Each wave runs 10-14 days with email reminders at days 3 and 7. Incentive is a $5 gift card per wave — high enough to sustain engagement, low enough to avoid mercenary respondents.</div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Known limitations</div>
+              <div>
+                <div class="limitation-item"><span><strong>Hawthorne risk.</strong> Panel members know they're being surveyed — their Grüns awareness may drift above a random consumer's. We check quarterly against blind awareness studies.</span></div>
+                <div class="limitation-item"><span><strong>Wave attrition.</strong> 89% wave-to-wave retention is healthy but non-zero. Replacement respondents are stratified-matched to exits.</span></div>
+                <div class="limitation-item"><span><strong>Single vendor dependency.</strong> If Dynata breached contract, rebuilding an equivalent panel takes 3-4 months. Cint maintained as pre-approved secondary.</span></div>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Contingency</div>
+              <div class="source-section-body">Cint framework agreement signed, $0/mo retainer — activation would cost ~$12k to stand up a 500-person stratified panel within 6 weeks. The longitudinal continuity would break (new panel = new respondents), which is a real cost, but the stack continues to function.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- First-party CDP -->
+        <div class="source-card">
+          <div class="source-meta">
+            <div class="source-logo">Customer CDP</div>
+            <div class="source-type">First-party · Internal</div>
+            <div class="source-stat"><span class="k">Platform</span><span class="v">Segment + Snowflake</span></div>
+            <div class="source-stat"><span class="k">Annual cost</span><span class="v">$21k</span></div>
+            <div class="source-stat"><span class="k">Cadence</span><span class="v">real-time</span></div>
+            <div class="source-stat"><span class="k">SLA</span><span class="v warn">iOS gap</span></div>
+            <div class="source-stat"><span class="k">Owner</span><span class="v">Data team</span></div>
+          </div>
+          <div class="source-body">
+            <div class="source-title">Subscription events & cohort attribution<span class="source-tag critical">CRITICAL</span></div>
+            <div class="source-desc">Every subscription event — signup, first order, flavor selection, skip, pause, cancel, reactivation — captured via Segment and warehoused in Snowflake. This is the ground truth for cohort retention, LTV, and every actual-vs-forecast comparison in the backtest.</div>
+
+            <div class="source-section">
+              <div class="source-section-label">Feeds these Signal Desk metrics</div>
+              <div>
+                <span class="metric-chip">M2 retention <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Cohort retention curves <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">LTV:CAC by channel <span class="src-page">/ Retention Room</span></span>
+                <span class="metric-chip">Retention matrix <span class="src-page">/ Retention Room</span></span>
+                <span class="metric-chip">Unit economics waterfall <span class="src-page">/ Retention Room</span></span>
+                <span class="metric-chip">Retention predictors <span class="src-page">/ Retention Room</span></span>
+                <span class="metric-chip">Subscriber journey <span class="src-page">/ Retention Room</span></span>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Known limitations</div>
+              <div>
+                <div class="limitation-item"><span><strong>iOS 14+ attribution gap.</strong> ATT opt-out means ~30% of TikTok-sourced subscribers lack deterministic channel attribution. We triangulate via creator codes, UTM capture, and post-purchase "how did you hear about us" — produces ±3pp error band on TikTok cohort reads specifically.</span></div>
+                <div class="limitation-item"><span><strong>Retroactive re-attribution.</strong> Late-converting multi-touch journeys can get reassigned 7 days after signup. Cohort reads stabilize after day 14.</span></div>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Why this is the most valuable source</div>
+              <div class="source-section-body">Every other source tells us what consumers <em>say</em>, <em>search</em>, or <em>post</em>. This one tells us what they <em>actually did with their money</em>. No vendor can take it away, no policy change can cut it off, and it's the only source that feeds every single downstream analytics workflow in the company.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exit survey -->
+        <div class="source-card">
+          <div class="source-meta">
+            <div class="source-logo">Delighted</div>
+            <div class="source-type">Vendor · Exit survey</div>
+            <div class="source-stat"><span class="k">Contract</span><span class="v">Growth tier</span></div>
+            <div class="source-stat"><span class="k">Annual cost</span><span class="v">$6k</span></div>
+            <div class="source-stat"><span class="k">Cadence</span><span class="v">real-time</span></div>
+            <div class="source-stat"><span class="k">SLA</span><span class="v ok">99.9% · GREEN</span></div>
+            <div class="source-stat"><span class="k">Renewal</span><span class="v">monthly</span></div>
+          </div>
+          <div class="source-body">
+            <div class="source-title">Cancel-flow exit intercept<span class="source-tag supporting">SUPPORTING</span></div>
+            <div class="source-desc">Single-question survey intercepted in the cancellation flow, asking the primary reason for leaving. Response rate of 38% — high for an exit context. Directly feeds the churn reason breakdown on the Retention Room and the substitution reasons on the Signal Desk.</div>
+
+            <div class="source-section">
+              <div class="source-section-label">Feeds these Signal Desk metrics</div>
+              <div>
+                <span class="metric-chip">M2 churn reasons <span class="src-page">/ Retention Room</span></span>
+                <span class="metric-chip">Substitution reasons <span class="src-page">/ Signal Desk</span></span>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Known limitations</div>
+              <div>
+                <div class="limitation-item"><span><strong>Non-response bias.</strong> 62% don't respond — they're probably more annoyed or rushed, which likely underrepresents the "just forgot" category vs what you'd see in ethnographic research.</span></div>
+                <div class="limitation-item"><span><strong>Single reason only.</strong> Forced-choice single answer. Multi-reason churn (e.g., "too expensive AND didn't feel benefit") gets flattened.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review scraping -->
+        <div class="source-card">
+          <div class="source-meta">
+            <div class="source-logo">Trustpilot / Amazon</div>
+            <div class="source-type">Vendor · Review scrape</div>
+            <div class="source-stat"><span class="k">Vendor</span><span class="v">Bazaarvoice + direct</span></div>
+            <div class="source-stat"><span class="k">Annual cost</span><span class="v">$14k</span></div>
+            <div class="source-stat"><span class="k">Cadence</span><span class="v">daily</span></div>
+            <div class="source-stat"><span class="k">SLA</span><span class="v ok">98.2% · GREEN</span></div>
+            <div class="source-stat"><span class="k">Renewal</span><span class="v">Jul 2026</span></div>
+          </div>
+          <div class="source-body">
+            <div class="source-title">Public review corpus<span class="source-tag supporting">SUPPORTING</span></div>
+            <div class="source-desc">Scheduled daily pull of Grüns product reviews from Trustpilot (official integration) and Amazon (Bazaarvoice partnership — Grüns is not direct Amazon seller but appears in third-party listings). Also includes competitor review scrapes for share-of-quality comparison.</div>
+
+            <div class="source-section">
+              <div class="source-section-label">Feeds these Signal Desk metrics</div>
+              <div>
+                <span class="metric-chip">SKU review scores <span class="src-page">/ Signal Desk</span></span>
+                <span class="metric-chip">Review sentiment delta <span class="src-page">/ Signal Desk feed</span></span>
+                <span class="metric-chip">Wild Berry reformulation read <span class="src-page">/ Signal Desk feed</span></span>
+              </div>
+            </div>
+
+            <div class="source-section">
+              <div class="source-section-label">Known limitations</div>
+              <div>
+                <div class="limitation-item"><span><strong>Review gaming.</strong> Review sites have known fake-review problems. We apply a reviewer-history filter (no single-review accounts weighted at full value) and flag suspicious burst patterns.</span></div>
+                <div class="limitation-item"><span><strong>Small-sample SKUs.</strong> Limited-edition and trial flavors may have &lt;300 reviews, making aggregate scores noisy. Flagged on the SKU telemetry panel.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Full lineage table -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Metric lineage map <span class="accent">/ trace any number back to its source in one click</span></div>
+        <div class="panel-meta">Signal Desk + Retention Room metrics</div>
+      </div>
+      <div class="panel-body tight">
+        <table class="lineage-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Source(s)</th>
+              <th>Transformation</th>
+              <th>Cadence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="lineage-metric">Panel NPS<span class="page">Signal Desk KPI</span></div></td>
+              <td class="lineage-source"><strong>Dynata</strong> monthly survey wave</td>
+              <td class="lineage-transform">NPS(promoters − detractors) weighted by census strata</td>
+              <td><span class="lineage-method">monthly</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Social Velocity +28.4%<span class="page">Signal Desk KPI</span></div></td>
+              <td class="lineage-source"><strong>Sprinklr</strong> (primary) · <strong>Brandwatch</strong> (validation)</td>
+              <td class="lineage-transform">mentions × sentiment × creator-weighted reach, WoW Δ vs 90d baseline</td>
+              <td><span class="lineage-method">5-min</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Search Intent Index<span class="page">Signal Desk KPI</span></div></td>
+              <td class="lineage-source"><strong>Google Trends</strong> via SerpApi</td>
+              <td class="lineage-transform">weighted basket of 4 query categories, 5-query rolling median</td>
+              <td><span class="lineage-method">hourly</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">M2 Retention 74.1%<span class="page">Signal Desk KPI</span></div></td>
+              <td class="lineage-source"><strong>First-party CDP</strong> (Segment → Snowflake)</td>
+              <td class="lineage-transform">% of acquired subs still active at day 60 post-first-order</td>
+              <td><span class="lineage-method">daily</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">60D Demand Forecast +8.1%<span class="page">Signal Desk KPI</span></div></td>
+              <td class="lineage-source"><strong>Sprinklr + Google Trends + Dynata + CDP</strong> (6 features)</td>
+              <td class="lineage-transform">gradient-boosted model v2.4 with lagged features, retrained weekly</td>
+              <td><span class="lineage-method">weekly fit · daily run</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Composite Sentiment 71<span class="page">Signal Desk panel</span></div></td>
+              <td class="lineage-source"><strong>Dynata</strong> panel</td>
+              <td class="lineage-transform">weighted avg of 5 sub-scores (Taste, Efficacy, Value, Trust, Ritual Fit)</td>
+              <td><span class="lineage-method">monthly</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Cohort retention curves<span class="page">Signal Desk panel</span></div></td>
+              <td class="lineage-source"><strong>CDP</strong> subscription events</td>
+              <td class="lineage-transform">Kaplan-Meier estimator stratified by acquisition channel</td>
+              <td><span class="lineage-method">daily</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Substitution map (switch rates)<span class="page">Signal Desk panel</span></div></td>
+              <td class="lineage-source"><strong>Delighted</strong> exit survey + <strong>Dynata</strong> panel</td>
+              <td class="lineage-transform">dual-source switching matrix, reconciled quarterly</td>
+              <td><span class="lineage-method">real-time + monthly</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">LTV:CAC by channel<span class="page">Retention Room</span></div></td>
+              <td class="lineage-source"><strong>CDP</strong> (revenue) + <strong>ad platform APIs</strong> (spend)</td>
+              <td class="lineage-transform">24mo LTV projection divided by attributed CAC per channel</td>
+              <td><span class="lineage-method">daily</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Retention predictors<span class="page">Retention Room</span></div></td>
+              <td class="lineage-source"><strong>CDP</strong> event stream + <strong>marketing platform</strong></td>
+              <td class="lineage-transform">logistic regression on M1 behavioral features, AUC 0.74</td>
+              <td><span class="lineage-method">monthly refit</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">SKU review scores<span class="page">Signal Desk SKU panel</span></div></td>
+              <td class="lineage-source"><strong>Trustpilot + Amazon</strong> via Bazaarvoice</td>
+              <td class="lineage-transform">weighted mean with recency decay, bot-filter applied</td>
+              <td><span class="lineage-method">daily</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Wild Berry sentiment Δ +0.18<span class="page">Signal Desk feed</span></div></td>
+              <td class="lineage-source"><strong>Trustpilot + Amazon</strong></td>
+              <td class="lineage-transform">pre-post analysis around 04/02 reformulation date</td>
+              <td><span class="lineage-method">daily</span></td>
+            </tr>
+            <tr>
+              <td><div class="lineage-metric">Cancel-intent search alert<span class="page">Signal Desk alert</span></div></td>
+              <td class="lineage-source"><strong>Google Trends</strong></td>
+              <td class="lineage-transform">cancel sub-index WoW Δ, fires at &gt;25% threshold</td>
+              <td><span class="lineage-method">hourly check</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-footer">
+        <span>Every metric on the Signal Desk, Retention Room, and Forecast Studio is mapped. If it isn't in this table, it isn't a tracked production metric.</span>
+        <span>audit log versioned · reviewable on request</span>
+      </div>
+    </div>
+
+    <!-- Cost & contracts panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Cost allocation <span class="accent">/ what we pay for what</span></div>
+        <div class="panel-meta">annual · vendor spend only (excl. internal labor)</div>
+      </div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px;">Annual breakdown</div>
+            <div style="display:grid;gap:10px;">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Sprinklr (social, primary)</span><span class="num" style="color:var(--ink);">$54,000</span></div>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:38%;height:100%;background:var(--accent);"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Dynata (longitudinal panel)</span><span class="num" style="color:var(--ink);">$48,000</span></div>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:34%;height:100%;background:var(--accent);"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Segment + Snowflake (CDP)</span><span class="num" style="color:var(--ink);">$21,000</span></div>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:15%;height:100%;background:var(--accent);"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Brandwatch (cross-val)</span><span class="num" style="color:var(--ink);">$18,000</span></div>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:13%;height:100%;background:var(--info);"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Bazaarvoice (reviews)</span><span class="num" style="color:var(--ink);">$14,000</span></div>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:10%;height:100%;background:var(--info);"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Delighted (exit survey)</span><span class="num" style="color:var(--ink);">$6,000</span></div>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:4%;height:100%;background:var(--info);"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>SerpApi (Google Trends)</span><span class="num" style="color:var(--ink);">$1,400</span></div>
+                <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="width:1%;height:100%;background:var(--info);"></div></div>
+              </div>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-strong);display:flex;justify-content:space-between;font-size:13px;"><span style="font-weight:500;">Total vendor spend</span><span class="num" style="color:var(--accent);font-size:14px;">$162,400</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px;">Spend philosophy</div>
+            <div style="font-size:12.5px;color:var(--ink-dim);line-height:1.7;">
+              <p style="margin-bottom:14px;">The stack is deliberately weighted toward <strong style="color:var(--ink);">signal diversity</strong> over single-source depth. Dual-sourcing social listening (Sprinklr + Brandwatch) costs $18k/yr — less than a week of typical paid media — but protects every marketing decision downstream from a single vendor failure.</p>
+              <p style="margin-bottom:14px;">The Dynata panel is the largest discretionary line item and the one genuine strategic vendor: the longitudinal design is what makes our research more defensible than competitors running ad-hoc Qualtrics surveys. This is the spend to protect in a budget cut.</p>
+              <p>Internal infrastructure (Segment + Snowflake) is the smallest line because it's leveraged across other data workflows beyond research. Marginal cost attribution to Signal Desk is ~$21k; true fully-loaded cost is higher but shared.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <span>$162k/yr total · approximately 0.14% of annual revenue · ROI framework: if this stack improves any single marketing-mix decision by &gt;1%, it pays for itself</span>
+        <span>next budget review · Q3'26</span>
+      </div>
+    </div>
+
+    <div class="footnote">
+      <span>Data Sources v2.4.1 · all vendor contracts versioned · lineage map refreshed with each source addition · costs directional, rounded</span>
+      <span>built for transparency · confidential</span>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
